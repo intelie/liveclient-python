@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import logging
 import socket
 import json
@@ -13,9 +14,11 @@ def send_event(event, output_settings):
     if not event:
         return
 
-    message = '{}\n'.format(
-        json.dumps(event)
-    )
+    message = '{}\n'.format(json.dumps(event))
+    python_version = sys.version_info.major
+    if python_version == 3:
+        message = bytes(message, 'utf-8')
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.connect((ip, port))
