@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import requests
+from setproctitle import setproctitle
 
 from aiocometd import Client
 
@@ -35,6 +36,7 @@ def start(host, username, password, statement, realtime=False, span=None):
 
 
 async def read_results(url, channels, output_queue):
+    setproctitle('DDA: cometd client for channels {}'.format(channels))
 
     # connect to the server
     async with Client(url) as client:
