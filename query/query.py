@@ -6,9 +6,10 @@ from setproctitle import setproctitle
 from aiocometd import Client
 
 
-HOST = 'https://shellgamechanger.intelie.com'
-USERNAME = 'live-agent'
-PASSWORD = 'tEqwGSQb'
+__all__ = [
+    'start',
+    'watch'
+]
 
 
 def start(host, username, password, statement, realtime=False, span=None):
