@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from multiprocessing import Queue
 
-from .utils import make_request
 from live_client import query
+from .utils import make_request
 
 __all__ = [
     'list_assets',
@@ -11,13 +11,31 @@ __all__ = [
 ]
 
 
-def list_assets(process_name, process_settings, output_info, asset_type='rig'):
+ALL_ASSET_TYPES = ['rig', 'crew', 'pump']
+
+
+def list_assets(process_name, process_settings, output_info, asset_type=None):
     live_settings = process_settings['live']
     host = live_settings['host']
+    data = []
 
-    url = '{}/services/plugin-liverig/assets/{}'.format(host, asset_type)
+    if asset_type in ALL_ASSET_TYPES:
+        chosen_asset_types = [asset_type]
 
-    data = make_request(process_name, process_settings, output_info, url)
+    elif asset_type is None:
+        chosen_asset_types = ALL_ASSET_TYPES
+
+    else:
+        chosen_asset_types = []
+
+    for atype in chosen_asset_types:
+        url = '{}/services/plugin-liverig/assets/{}'.format(host, atype)
+        response_data = make_request(process_name, process_settings, output_info, url)
+        if response_data is not None:
+            for asset in response_data:
+                asset['asset_type'] = atype
+                data.append(asset)
+
     return data
 
 
