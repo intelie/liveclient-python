@@ -4,6 +4,7 @@ import logging
 from multiprocessing import Process, Queue
 
 import requests
+from eliot import start_action
 from setproctitle import setproctitle
 
 from aiocometd import Client
@@ -62,27 +63,28 @@ def watch(url, channels, output_queue):
 
 
 def run(process_name, process_settings, statement, realtime=False, span=None):
-    live_settings = process_settings['live']
-    host = live_settings['host']
-    username = live_settings['username']
-    password = live_settings['password']
+    with start_action(action_type=u"run_query"):
+        live_settings = process_settings['live']
+        host = live_settings['host']
+        username = live_settings['username']
+        password = live_settings['password']
 
-    logging.info("{}: Query '{}' started".format(process_name, statement))
-    channels = start(
-        host,
-        username,
-        password,
-        statement,
-        realtime=True,
-        span=span,
-    )
-    logging.info("{}: Results channel is {}".format(process_name, channels))
+        logging.info("{}: Query '{}' started".format(process_name, statement))
+        channels = start(
+            host,
+            username,
+            password,
+            statement,
+            realtime=True,
+            span=span,
+        )
+        logging.info("{}: Results channel is {}".format(process_name, channels))
 
-    host = live_settings['host']
-    results_url = '{}/cometd'.format(host)
+        host = live_settings['host']
+        results_url = '{}/cometd'.format(host)
 
-    events_queue = Queue()
-    process = Process(target=watch, args=(results_url, channels, events_queue))
-    process.start()
+        events_queue = Queue()
+        process = Process(target=watch, args=(results_url, channels, events_queue))
+        process.start()
 
     return process, events_queue
