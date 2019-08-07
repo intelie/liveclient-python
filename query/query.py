@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import logging
+from multiprocessing import Process, Queue
+
 import requests
 from setproctitle import setproctitle
 
@@ -7,8 +10,9 @@ from aiocometd import Client
 
 
 __all__ = [
+    'run',
     'start',
-    'watch'
+    'watch',
 ]
 
 
@@ -55,3 +59,30 @@ async def read_results(url, channels, output_queue):
 def watch(url, channels, output_queue):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(read_results(url, channels, output_queue))
+
+
+def run(process_name, process_settings, statement, realtime=False, span=None):
+    live_settings = process_settings['live']
+    host = live_settings['host']
+    username = live_settings['username']
+    password = live_settings['password']
+
+    logging.info("{}: Query '{}' started".format(process_name, statement))
+    channels = start(
+        host,
+        username,
+        password,
+        statement,
+        realtime=True,
+        span=span,
+    )
+    logging.info("{}: Results channel is {}".format(process_name, channels))
+
+    host = live_settings['host']
+    results_url = '{}/cometd'.format(host)
+
+    events_queue = Queue()
+    process = Process(target=watch, args=(results_url, channels, events_queue))
+    process.start()
+
+    return process, events_queue

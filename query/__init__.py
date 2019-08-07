@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from .query import start, watch  # NOQA
+from .query import start, watch, run  # NOQA
