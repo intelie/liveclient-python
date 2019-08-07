@@ -6,6 +6,7 @@ from live_client import query
 
 __all__ = [
     'list_assets',
+    'fetch_asset_settings',
     'watch_asset_settings',
 ]
 
@@ -20,12 +21,22 @@ def list_assets(process_name, process_settings, output_info, asset_type='rig'):
     return data
 
 
-def watch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type='rig'):
+def fetch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type='rig'):
     live_settings = process_settings['live']
     host = live_settings['host']
 
     url = '{}/services/plugin-liverig/assets/{}/{}/normalizer'.format(host, asset_type, asset_id)
-    initial_config = make_request(process_name, process_settings, output_info, url)
+    return make_request(process_name, process_settings, output_info, url)
+
+
+def watch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type='rig'):
+    initial_config = fetch_asset_settings(
+        process_name,
+        process_settings,
+        output_info,
+        asset_id,
+        asset_type=asset_type
+    )
 
     asset_query_template = '__asset event:(normalizer|delete) type:{} id:{}'
     asset_query = asset_query_template.format(asset_type, asset_id)
