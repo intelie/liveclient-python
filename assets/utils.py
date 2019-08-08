@@ -5,7 +5,10 @@ from requests.exceptions import RequestException
 
 from eliot import start_action
 
-__all__ = ['make_request']
+__all__ = [
+    'make_request',
+    'only_enabled_curves',
+]
 
 
 def build_session(process_settings):
@@ -39,3 +42,12 @@ def make_request(process_name, process_settings, output_info, url):
             result = None
 
     return result
+
+
+def only_enabled_curves(curves):
+    idle_curve = [{}]
+
+    return dict(
+        (name, value) for (name, value) in curves.items()
+        if value.get('options', idle_curve) != idle_curve
+    )

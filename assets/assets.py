@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from multiprocessing import Queue
+import urllib
 
 from live_client import query
 from .utils import make_request
@@ -8,6 +9,7 @@ __all__ = [
     'list_assets',
     'fetch_asset_settings',
     'watch_asset_settings',
+    'run_analysis',
 ]
 
 
@@ -77,3 +79,22 @@ def _settings_update_handler(events_queue):
         settings_queue.put(event.get('config', {}))
 
     return settings_queue
+
+
+def run_analysis(process_name, process_settings, output_info, **kwargs):
+    live_settings = process_settings['live']
+    host = live_settings['host']
+
+    qs_data = {
+        'assetId': kwargs.get('assetId'),
+        'channel': kwargs.get('channel'),
+        'qualifier': kwargs.get('channel'),
+        'begin': kwargs.get('begin'),
+        'end': kwargs.get('end'),
+        'computeFields': kwargs.get('computeFields'),
+    }
+
+    params = urllib.parse.urlencode(qs_data)
+    url = '{}/services/plugin-liverig-vis/auto-analysis/analyse?{}'.format(host, params)
+
+    return make_request(process_name, process_settings, output_info, url)
