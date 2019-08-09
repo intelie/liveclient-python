@@ -94,7 +94,7 @@ def run_analysis(process_name, process_settings, output_info, **kwargs):
         'computeFields': kwargs.get('computeFields'),
     }
 
-    params = urllib.parse.urlencode(qs_data)
+    params = urllib.parse.urlencode(qs_data, doseq=True)
     url = '{}/services/plugin-liverig-vis/auto-analysis/analyse?{}'.format(host, params)
 
     return make_request(process_name, process_settings, output_info, url)
