@@ -10,12 +10,15 @@ __all__ = [
 ]
 
 
-def create(process_name, annotation_data, process_settings=None, output_info=None):
+def create(process_name, annotation_data, process_settings=None, output_info=None, room=None):
     destination_settings = process_settings['destination']
     connection_func, output_settings = output_info
 
+    if room is None:
+        room = destination_settings['room']
+
     output_settings.update(
-        room=destination_settings['room'],
+        room=room,
         author=destination_settings['author'],
         dashboard=destination_settings.get('dashboard', {}),
     )
