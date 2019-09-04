@@ -75,7 +75,7 @@ def run(process_name, process_settings, statement, realtime=False, span=None):
             username,
             password,
             statement,
-            realtime=True,
+            realtime=realtime,
             span=span,
         )
         logging.info("{}: Results channel is {}".format(process_name, channels))
