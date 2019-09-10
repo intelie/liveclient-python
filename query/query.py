@@ -4,7 +4,7 @@ import logging
 from multiprocessing import Process, Queue
 
 import requests
-from eliot import start_action
+from eliot import start_action, Action
 from setproctitle import setproctitle
 
 from aiocometd import Client
@@ -64,13 +64,15 @@ async def read_results(url, channels, output_queue):
                 return
 
 
-def watch(url, channels, output_queue):
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(read_results(url, channels, output_queue))
+def watch(url, channels, output_queue, task_id):
+    with Action.continue_task(task_id=task_id):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(read_results(url, channels, output_queue))
 
 
 def run(process_name, process_settings, statement, realtime=False, span=None):
-    with start_action(action_type=u"run_query", statement=statement):
+    with start_action(action_type=u"run_query", statement=statement) as action:
+        task_id = action.serialize_task_id()
         live_settings = process_settings['live']
         host = live_settings['host']
         username = live_settings['username']
@@ -91,7 +93,7 @@ def run(process_name, process_settings, statement, realtime=False, span=None):
         results_url = '{}/cometd'.format(host)
 
         events_queue = Queue()
-        process = Process(target=watch, args=(results_url, channels, events_queue))
+        process = Process(target=watch, args=(results_url, channels, events_queue, task_id))
         process.start()
 
     return process, events_queue
