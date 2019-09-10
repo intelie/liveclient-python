@@ -3,6 +3,8 @@ from multiprocessing import Queue
 import urllib
 
 from live_client import query
+from utils import logging
+
 from .utils import make_request
 
 __all__ = [
@@ -32,11 +34,14 @@ def list_assets(process_name, process_settings, output_info, asset_type=None):
 
     for atype in chosen_asset_types:
         url = '{}/services/plugin-liverig/assets/{}'.format(host, atype)
-        response_data = make_request(process_name, process_settings, output_info, url)
-        if response_data is not None:
-            for asset in response_data:
-                asset['asset_type'] = atype
-                data.append(asset)
+        try:
+            response_data = make_request(process_name, process_settings, output_info, url)
+            if response_data is not None:
+                for asset in response_data:
+                    asset['asset_type'] = atype
+                    data.append(asset)
+        except Exception as e:
+            logging.exception(e)
 
     return data
 
