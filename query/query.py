@@ -9,6 +9,8 @@ from setproctitle import setproctitle
 
 from aiocometd import Client
 
+from live_client.events.constants import EVENT_TYPE_STOP
+
 
 __all__ = [
     'run',
@@ -46,15 +48,20 @@ async def read_results(url, channels, output_queue):
 
     # connect to the server
     async with Client(url) as client:
+        # subscribe to channels to receive chat messages and
+        # notifications about new members
+        for channel in channels:
+            await client.subscribe(channel)
 
-            # subscribe to channels to receive chat messages and
-            # notifications about new members
-            for channel in channels:
-                await client.subscribe(channel)
+        # listen for incoming messages
+        async for message in client:
+            output_queue.put(message)
 
-            # listen for incoming messages
-            async for message in client:
-                output_queue.put(message)
+            # Exit after the query has stopped
+            event_data = message.get('data', {})
+            event_type = event_data.get('type')
+            if event_type == EVENT_TYPE_STOP:
+                return
 
 
 def watch(url, channels, output_queue):
