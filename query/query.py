@@ -9,7 +9,7 @@ from setproctitle import setproctitle
 
 from aiocometd import Client
 
-from live_client.events.constants import EVENT_TYPE_STOP
+from live_client.events.constants import EVENT_TYPE_DESTROY
 
 
 __all__ = [
@@ -60,7 +60,7 @@ async def read_results(url, channels, output_queue):
             # Exit after the query has stopped
             event_data = message.get('data', {})
             event_type = event_data.get('type')
-            if event_type == EVENT_TYPE_STOP:
+            if event_type == EVENT_TYPE_DESTROY:
                 return
 
 
