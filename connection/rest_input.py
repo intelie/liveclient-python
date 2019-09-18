@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
 import requests
+from multiprocessing import Process, Queue
+
 from requests.exceptions import RequestException
+from setproctitle import setproctitle
+from eliot import start_action
 
 __all__ = ['send_event']
 
@@ -34,3 +38,23 @@ def send_event(event, output_settings):
     except RequestException as e:
         logging.exception("ERROR: Cannot send event, {}<{}>".format(e, type(e)))
         logging.exception("Event data: {}".format(event))
+
+
+def async_send(queue, output_settings):
+    with start_action(action_type='async_logger'):
+        logging.info("Remote logger process started")
+        setproctitle('DDA: Remote logger')
+        while True:
+            event = queue.get()
+            send_event(event, output_settings)
+
+
+def async_event_sender(output_settings):
+    events_queue = Queue()
+    process = Process(
+        target=async_send,
+        args=(events_queue, output_settings)
+    )
+    process.start()
+
+    return lambda event: events_queue.put(event)
