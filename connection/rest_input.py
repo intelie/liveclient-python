@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import logging
 import requests
 from multiprocessing import Process, Queue
 
 from requests.exceptions import RequestException
 from setproctitle import setproctitle
 from eliot import start_action
+
+from live_client.utils import logging
 
 __all__ = ['send_event']
 

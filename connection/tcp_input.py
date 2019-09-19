@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
-import logging
 import socket
 import json
+
+from live_client.utils import logging
 
 __all__ = ['send_event']
 

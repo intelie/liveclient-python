@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 import uuid
 from enum import Enum
 
 from . import raw
 from live_client.utils.timestamp import get_timestamp
+from live_client.utils import logging
 
 __all__ = [
     'send_message',

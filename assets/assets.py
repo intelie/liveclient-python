@@ -3,7 +3,7 @@ from multiprocessing import Queue
 import urllib
 
 from live_client import query
-from utils import logging
+from live_client.utils import logging
 
 from .utils import make_request
 

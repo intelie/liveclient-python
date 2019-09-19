@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import logging
 import requests
 from requests.exceptions import RequestException
 
 from eliot import start_action
+
+from live_client.utils import logging
 
 __all__ = [
     'make_request',

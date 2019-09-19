@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import asyncio
-import logging
 from multiprocessing import Process, Queue
 
 import requests
@@ -10,6 +9,7 @@ from setproctitle import setproctitle
 from aiocometd import Client
 
 from live_client.events.constants import EVENT_TYPE_DESTROY
+from live_client.utils import logging
 
 
 __all__ = [
