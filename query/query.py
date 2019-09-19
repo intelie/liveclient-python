@@ -71,7 +71,7 @@ def watch(url, channels, output_queue, task_id):
 
 
 def run(process_name, process_settings, statement, realtime=False, span=None):
-    with start_action(action_type=u"run_query", statement=statement) as action:
+    with start_action(action_type=u"query.run", statement=statement) as action:
         task_id = action.serialize_task_id()
         live_settings = process_settings['live']
         host = live_settings['host']
