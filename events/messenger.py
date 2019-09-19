@@ -106,7 +106,7 @@ def add_or_remove_from_room(process_name, process_settings, output_info, room_id
     connection_func(event, output_settings)
 
 
-def send_message(process_name, message, timestamp, process_settings=None, output_info=None, message_type=None):
+def send_message(process_name, message, timestamp, process_settings=None, output_info=None, message_type=None):  # NOQA
     if (message_type is None) or (message_type == MESSAGE_TYPES.EVENT):
         maybe_send_message_event(
             process_name,
@@ -125,7 +125,7 @@ def send_message(process_name, message, timestamp, process_settings=None, output
         )
 
 
-def maybe_send_message_event(process_name, message, timestamp, process_settings=None, output_info=None):
+def maybe_send_message_event(process_name, message, timestamp, process_settings=None, output_info=None):  # NOQA
     destination_settings = process_settings['destination']
     message_event = destination_settings.get('message_event', {})
     event_type = message_event.get('event_type')
