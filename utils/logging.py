@@ -75,13 +75,19 @@ def setup_live_logging(settings):
 
 
 def level_is_logged(message_severity, min_level=None):
-    message_severity_idx = LOG_LEVELS.index(message_severity.upper())
+    severity = message_severity.upper()
+    if severity in LOG_LEVELS:
+        message_severity_idx = LOG_LEVELS.index(severity)
 
-    if (min_level is None) or (min_level.upper() not in LOG_LEVELS):
-        min_level = log_level
+        if (min_level is None) or (min_level.upper() not in LOG_LEVELS):
+            min_level = log_level
+        else:
+            min_level = min_level.upper()
+
+        min_level_idx = LOG_LEVELS.index(min_level.upper())
+
+        result = message_severity_idx >= min_level_idx
     else:
-        min_level = min_level.upper()
+        result = True
 
-    min_level_idx = LOG_LEVELS.index(min_level.upper())
-
-    return message_severity_idx >= min_level_idx
+    return result
