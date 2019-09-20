@@ -3,7 +3,7 @@ import asyncio
 from multiprocessing import Process, Queue
 
 import requests
-from eliot import start_action, Action
+from eliot import start_action, preserve_context
 from setproctitle import setproctitle
 
 from aiocometd import Client
@@ -46,33 +46,33 @@ def start(host, username, password, statement, realtime=False, span=None):
 async def read_results(url, channels, output_queue):
     setproctitle('DDA: cometd client for channels {}'.format(channels))
 
-    # connect to the server
-    async with Client(url) as client:
-        # subscribe to channels to receive chat messages and
-        # notifications about new members
-        for channel in channels:
-            await client.subscribe(channel)
+    with start_action(action_type=u"query.read_results", url=url, channels=channels):
+        # connect to the server
+        async with Client(url) as client:
+            for channel in channels:
+                logging.info(f"Subscribing to '{channel}'")
+                await client.subscribe(channel)
 
-        # listen for incoming messages
-        async for message in client:
-            output_queue.put(message)
+            # listen for incoming messages
+            async for message in client:
+                logging.info(f"New message'{message}'")
+                output_queue.put(message)
 
-            # Exit after the query has stopped
-            event_data = message.get('data', {})
-            event_type = event_data.get('type')
-            if event_type == EVENT_TYPE_DESTROY:
-                return
-
-
-def watch(url, channels, output_queue, task_id):
-    with Action.continue_task(task_id=task_id):
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(read_results(url, channels, output_queue))
+                # Exit after the query has stopped
+                event_data = message.get('data', {})
+                event_type = event_data.get('type')
+                if event_type == EVENT_TYPE_DESTROY:
+                    return
 
 
+def watch(url, channels, output_queue):
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(read_results(url, channels, output_queue))
+
+
+@preserve_context
 def run(process_name, process_settings, statement, realtime=False, span=None):
-    with start_action(action_type=u"query.run", statement=statement) as action:
-        task_id = action.serialize_task_id()
+    with start_action(action_type=u"query.run", statement=statement):
         live_settings = process_settings['live']
         host = live_settings['host']
         username = live_settings['username']
@@ -93,7 +93,7 @@ def run(process_name, process_settings, statement, realtime=False, span=None):
         results_url = '{}/cometd'.format(host)
 
         events_queue = Queue()
-        process = Process(target=watch, args=(results_url, channels, events_queue, task_id))
+        process = Process(target=watch, args=(results_url, channels, events_queue))
         process.start()
 
     return process, events_queue
