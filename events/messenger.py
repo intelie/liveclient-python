@@ -137,7 +137,7 @@ def maybe_send_message_event(process_name, message, timestamp, process_settings=
             'timestamp': timestamp,
             messages_mnemonic: {'value': message}
         }
-        logging.info("{}: Sending message event '{}' for '{}'".format(
+        logging.debug("{}: Sending message event '{}' for '{}'".format(
             process_name, event, event_type
         ))
         raw.format_and_send(event_type, event, output_settings, connection_func=connection_func)
@@ -168,7 +168,7 @@ def maybe_send_chat_message(process_name, message, **kwargs):
             room=room,
             author=author,
         )
-        logging.info("{}: Sending message '{}' from {} to {}".format(
+        logging.debug("{}: Sending message '{}' from {} to {}".format(
             process_name, message, author, room
         ))
         format_and_send(message, output_settings, connection_func=connection_func)
