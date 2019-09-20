@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import requests
 from requests.exceptions import RequestException
 
 from eliot import start_action
 
+from live_client.connection.rest_input import build_session
 from live_client.utils import logging
 
 __all__ = [
@@ -12,23 +12,13 @@ __all__ = [
 ]
 
 
-def build_session(process_settings):
-    live_settings = process_settings['live']
-    username = live_settings['username']
-    password = live_settings['password']
-
-    session = requests.Session()
-    session.auth = (username, password)
-
-    return session
-
-
 def make_request(process_name, process_settings, output_info, url):
     connection_func, output_settings = output_info
+    live_settings = process_settings['live']
 
     if 'session' not in output_settings:
         output_settings.update(
-            session=build_session(process_settings)
+            session=build_session(live_settings)
         )
 
     session = output_settings['session']

@@ -2,13 +2,13 @@
 import asyncio
 from multiprocessing import Process, Queue
 
-import requests
 from eliot import start_action, preserve_context
 from setproctitle import setproctitle
 
 from aiocometd import Client
 
 from live_client.events.constants import EVENT_TYPE_DESTROY
+from live_client.connection.rest_input import build_session
 from live_client.utils import logging
 
 
@@ -19,9 +19,16 @@ __all__ = [
 ]
 
 
-def start(host, username, password, statement, realtime=False, span=None):
-    session = requests.Session()
-    session.auth = (username, password)
+def start(process_settings, statement, realtime=False, span=None):
+    live_settings = process_settings['live']
+
+    if 'session' not in process_settings:
+        process_settings.update(
+            session=build_session(live_settings)
+        )
+
+    host = live_settings['host']
+    session = process_settings['session']
 
     api_url = '{}/rest/query'.format(host)
     query_payload = [{
@@ -75,14 +82,10 @@ def run(process_name, process_settings, statement, realtime=False, span=None):
     with start_action(action_type=u"query.run", statement=statement):
         live_settings = process_settings['live']
         host = live_settings['host']
-        username = live_settings['username']
-        password = live_settings['password']
 
         logging.info("{}: Query '{}' started".format(process_name, statement))
         channels = start(
-            host,
-            username,
-            password,
+            process_settings,
             statement,
             realtime=realtime,
             span=span,
