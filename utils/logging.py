@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 from functools import partial
+import logging as python_logging
+from http.client import HTTPConnection
 
 from eliot import Message, write_traceback, add_destinations
+from eliot.stdlib import EliotHandler
 
 from live_client.connection.rest_input import async_event_sender
 
@@ -50,6 +53,25 @@ def log_to_live(message, log_function=None, event_type=None, min_level=None):
         log_function(message)
 
 
+def level_is_logged(message_severity, min_level=None):
+    severity = message_severity.upper()
+    if severity in LOG_LEVELS:
+        message_severity_idx = LOG_LEVELS.index(severity)
+
+        if (min_level is None) or (min_level.upper() not in LOG_LEVELS):
+            min_level = log_level
+        else:
+            min_level = min_level.upper()
+
+        min_level_idx = LOG_LEVELS.index(min_level.upper())
+
+        result = message_severity_idx >= min_level_idx
+    else:
+        result = True
+
+    return result
+
+
 def setup_live_logging(settings):
     log_settings = settings.get('output', {}).get('rest-log', {})
 
@@ -74,20 +96,25 @@ def setup_live_logging(settings):
         )
 
 
-def level_is_logged(message_severity, min_level=None):
-    severity = message_severity.upper()
-    if severity in LOG_LEVELS:
-        message_severity_idx = LOG_LEVELS.index(severity)
+def setup_python_logging(settings):
+    log_settings = settings.get('output', {}).get('rest-log', {})
+    level = log_settings.get('level', default_level)
 
-        if (min_level is None) or (min_level.upper() not in LOG_LEVELS):
-            min_level = log_level
-        else:
-            min_level = min_level.upper()
+    log_level = getattr(python_logging, level.upper())
 
-        min_level_idx = LOG_LEVELS.index(min_level.upper())
+    if log_level is python_logging.DEBUG:
+        HTTPConnection.debuglevel = 1
 
-        result = message_severity_idx >= min_level_idx
-    else:
-        result = True
+    python_logging.basicConfig()
+    python_logging.getLogger().setLevel(log_level)
+    python_logging.getLogger().addHandler(EliotHandler())
 
-    return result
+    requests_log = python_logging.getLogger("urllib3")
+    requests_log.addHandler(EliotHandler())
+    requests_log.setLevel(log_level)
+    requests_log.propagate = False
+
+    cometd_log = python_logging.getLogger("aiocometd")
+    cometd_log.addHandler(EliotHandler())
+    cometd_log.setLevel(log_level)
+    cometd_log.propagate = False
