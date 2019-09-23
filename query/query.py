@@ -57,12 +57,12 @@ async def read_results(url, channels, output_queue):
         # connect to the server
         async with Client(url) as client:
             for channel in channels:
-                logging.info(f"Subscribing to '{channel}'")
+                logging.debug(f"Subscribing to '{channel}'")
                 await client.subscribe(channel)
 
             # listen for incoming messages
             async for message in client:
-                logging.info(f"New message'{message}'")
+                logging.debug(f"New message'{message}'")
                 output_queue.put(message)
 
                 # Exit after the query has stopped
@@ -83,14 +83,14 @@ def run(process_name, process_settings, statement, realtime=False, span=None):
         live_settings = process_settings['live']
         host = live_settings['host']
 
-        logging.info("{}: Query '{}' started".format(process_name, statement))
+        logging.debug("{}: Query '{}' started".format(process_name, statement))
         channels = start(
             process_settings,
             statement,
             realtime=realtime,
             span=span,
         )
-        logging.info("{}: Results channel is {}".format(process_name, channels))
+        logging.debug("{}: Results channel is {}".format(process_name, channels))
 
         host = live_settings['host']
         results_url = '{}/cometd'.format(host)
