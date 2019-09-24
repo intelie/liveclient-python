@@ -45,6 +45,10 @@ def async_send(queue, output_settings):
     with start_action(action_type='async_logger'):
         logging.info("Remote logger process started")
         setproctitle('DDA: Remote logger')
+
+        output_settings.update(
+            session=build_session(output_settings)
+        )
         while True:
             event = queue.get()
             send_event(event, output_settings)
