@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 from multiprocessing import Process, Queue
+from requests.exceptions import Timeout
 
 from eliot import start_action, preserve_context
 from setproctitle import setproctitle
@@ -19,7 +20,7 @@ __all__ = [
 ]
 
 
-def start(process_settings, statement, realtime=False, span=None):
+def start(process_settings, statement, realtime=False, span=None, timeout=None, retry=False):
     live_settings = process_settings['live']
 
     if 'session' not in process_settings:
@@ -30,7 +31,7 @@ def start(process_settings, statement, realtime=False, span=None):
     host = live_settings['host']
     session = process_settings['session']
 
-    api_url = '{}/rest/query'.format(host)
+    api_url = f'{host}/rest/query'
     query_payload = [{
         'provider': 'pipes',
         'preload': False,
@@ -39,8 +40,24 @@ def start(process_settings, statement, realtime=False, span=None):
         'expression': statement
     }]
 
-    r = session.post(api_url, json=query_payload)
-    r.raise_for_status()
+    request_finished = False
+    retries = 0
+    max_retries = 5
+
+    while request_finished is False:
+        try:
+            logging.debug(f"Query '{statement}' started")
+            r = session.post(api_url, json=query_payload)
+            r.raise_for_status()
+        except Timeout:
+            if retry is True and (retries < max_retries):
+                logging.info(f"Query timed out, retrying ({retries}/{max_retries})")
+                retries += 1
+                continue
+
+            logging.error(f"Query timed out")
+
+        request_finished = True
 
     channels = [
         item.get('channel')
@@ -78,25 +95,30 @@ def watch(url, channels, output_queue):
 
 
 @preserve_context
-def run(process_name, process_settings, statement, realtime=False, span=None):
+def run(process_name, process_settings, statement, realtime=False, span=None, timeout=None, retry=False):  # NOQA
     with start_action(action_type=u"query.run", statement=statement):
         live_settings = process_settings['live']
         host = live_settings['host']
 
-        logging.debug("{}: Query '{}' started".format(process_name, statement))
         channels = start(
             process_settings,
             statement,
             realtime=realtime,
             span=span,
+            timeout=timeout,
+            retry=retry
         )
-        logging.debug("{}: Results channel is {}".format(process_name, channels))
+
+        logging.debug(f"Results channel is {channels}")
 
         host = live_settings['host']
         results_url = '{}/cometd'.format(host)
 
         events_queue = Queue()
-        process = Process(target=watch, args=(results_url, channels, events_queue))
+        process = Process(
+            target=watch,
+            args=(results_url, channels, events_queue),
+        )
         process.start()
 
     return process, events_queue
