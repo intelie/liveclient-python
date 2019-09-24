@@ -29,12 +29,12 @@ EVENT_TYPES = {
 
 
 __all__ = [
-    'join_room', 'add_to_room', 'remove_from_room',
+    'join_messenger', 'add_to_room', 'remove_from_room',
     'send_message', 'maybe_send_chat_message', 'maybe_send_message_event'
 ]
 
 
-def join_room(process_name, process_settings, output_info):
+def join_messenger(process_name, process_settings, output_info):
     connection_func, output_settings = output_info
 
     bot_data = process_settings['destination']['author']
