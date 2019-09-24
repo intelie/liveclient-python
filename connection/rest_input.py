@@ -7,6 +7,7 @@ from setproctitle import setproctitle
 from eliot import start_action
 
 from live_client.utils import logging
+from live_client.utils.network import retry_on_failure
 
 __all__ = ['send_event']
 
@@ -34,8 +35,9 @@ def send_event(event, output_settings):
         return
 
     try:
-        response = session.post(url, json=event)
-        response.raise_for_status()
+        with retry_on_failure(3.05, max_retries=5):
+            response = session.post(url, json=event)
+            response.raise_for_status()
     except RequestException as e:
         logging.exception("ERROR: Cannot send event, {}<{}>".format(e, type(e)))
         logging.exception("Event data: {}".format(event))
