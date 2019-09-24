@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from multiprocessing import Queue
+from functools import partial
 import urllib
 
 from live_client import query
@@ -16,6 +17,9 @@ __all__ = [
 
 
 ALL_ASSET_TYPES = ['rig', 'crew', 'pump']
+
+
+request_with_timeout = partial(make_request, timeout=(3.05, 5), max_retries=5)
 
 
 def list_assets(process_name, process_settings, output_info, asset_type=None):
@@ -35,7 +39,7 @@ def list_assets(process_name, process_settings, output_info, asset_type=None):
     for atype in chosen_asset_types:
         url = '{}/services/plugin-liverig/assets/{}'.format(host, atype)
         try:
-            response_data = make_request(process_name, process_settings, output_info, url)
+            response_data = request_with_timeout(process_name, process_settings, output_info, url)
             if response_data is not None:
                 for asset in response_data:
                     asset['asset_type'] = atype
@@ -51,7 +55,7 @@ def fetch_asset_settings(process_name, process_settings, output_info, asset_id, 
     host = live_settings['host']
 
     url = '{}/services/plugin-liverig/assets/{}/{}/normalizer'.format(host, asset_type, asset_id)
-    return make_request(process_name, process_settings, output_info, url)
+    return request_with_timeout(process_name, process_settings, output_info, url)
 
 
 def watch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type='rig'):
@@ -102,4 +106,4 @@ def run_analysis(process_name, process_settings, output_info, **kwargs):
     params = urllib.parse.urlencode(qs_data, doseq=True)
     url = '{}/services/plugin-liverig-vis/auto-analysis/analyse?{}'.format(host, params)
 
-    return make_request(process_name, process_settings, output_info, url)
+    return request_with_timeout(process_name, process_settings, output_info, url)
