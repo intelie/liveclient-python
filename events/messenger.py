@@ -107,7 +107,7 @@ def add_or_remove_from_room(process_name, process_settings, output_info, room_id
 
 
 def send_message(process_name, message, timestamp, **kwargs):
-    message_type = kwargs.pop('message_type', MESSAGE_TYPES.CHAT)
+    message_type = kwargs.pop('message_type', None)
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.EVENT):
         maybe_send_message_event(
