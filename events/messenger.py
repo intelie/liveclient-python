@@ -106,26 +106,29 @@ def add_or_remove_from_room(process_name, process_settings, output_info, room_id
     connection_func(event, output_settings)
 
 
-def send_message(process_name, message, timestamp, process_settings=None, output_info=None, message_type=None):  # NOQA
+def send_message(process_name, message, timestamp, **kwargs):
+    message_type = kwargs.pop('message_type', MESSAGE_TYPES.CHAT)
+
     if (message_type is None) or (message_type == MESSAGE_TYPES.EVENT):
         maybe_send_message_event(
             process_name,
             message,
             timestamp,
-            process_settings=process_settings,
-            output_info=output_info
+            **kwargs
         )
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.CHAT):
         maybe_send_chat_message(
             process_name,
             message,
-            process_settings=process_settings,
-            output_info=output_info
+            **kwargs
         )
 
 
-def maybe_send_message_event(process_name, message, timestamp, process_settings=None, output_info=None):  # NOQA
+def maybe_send_message_event(process_name, message, timestamp, **kwargs):
+    process_settings = kwargs.get('process_settings', {})
+    output_info = kwargs.get('output_info', None)
+
     destination_settings = process_settings['destination']
     message_event = destination_settings.get('message_event', {})
     event_type = message_event.get('event_type')
@@ -144,12 +147,12 @@ def maybe_send_message_event(process_name, message, timestamp, process_settings=
 
 
 def maybe_send_chat_message(process_name, message, **kwargs):
-    author_name = kwargs.pop('author_name', None)
-    process_settings = kwargs.pop('process_settings', {})
-    output_info = kwargs.pop('output_info', None)
+    author_name = kwargs.get('author_name', None)
+    process_settings = kwargs.get('process_settings', {})
+    output_info = kwargs.get('output_info', None)
 
     destination_settings = process_settings['destination']
-    room = destination_settings.get('room')
+    room = kwargs.get('room', destination_settings.get('room'))
     author = destination_settings.get('author')
 
     if (room is None) or (author is None):
