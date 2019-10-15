@@ -9,12 +9,12 @@ from eliot import start_action
 from live_client.utils import logging
 from live_client.utils.network import retry_on_failure
 
-__all__ = ['send_event']
+__all__ = ["send_event"]
 
 
 def build_session(output_settings):
-    username = output_settings['username']
-    password = output_settings['password']
+    username = output_settings["username"]
+    password = output_settings["password"]
 
     session = requests.Session()
     session.auth = (username, password)
@@ -23,13 +23,11 @@ def build_session(output_settings):
 
 
 def send_event(event, output_settings):
-    if 'session' not in output_settings:
-        output_settings.update(
-            session=build_session(output_settings)
-        )
+    if "session" not in output_settings:
+        output_settings.update(session=build_session(output_settings))
 
-    session = output_settings['session']
-    url = output_settings['url']
+    session = output_settings["session"]
+    url = output_settings["url"]
 
     if not event:
         return
@@ -44,13 +42,11 @@ def send_event(event, output_settings):
 
 
 def async_send(queue, output_settings):
-    with start_action(action_type='async_logger'):
+    with start_action(action_type="async_logger"):
         logging.info("Remote logger process started")
-        setproctitle('DDA: Remote logger')
+        setproctitle("DDA: Remote logger")
 
-        output_settings.update(
-            session=build_session(output_settings)
-        )
+        output_settings.update(session=build_session(output_settings))
         while True:
             event = queue.get()
             send_event(event, output_settings)
@@ -58,10 +54,7 @@ def async_send(queue, output_settings):
 
 def async_event_sender(output_settings):
     events_queue = Queue()
-    process = Process(
-        target=async_send,
-        args=(events_queue, output_settings)
-    )
+    process = Process(target=async_send, args=(events_queue, output_settings))
     process.start()
 
     return lambda event: events_queue.put(event)

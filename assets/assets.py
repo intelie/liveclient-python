@@ -8,23 +8,18 @@ from live_client.utils import logging
 
 from .utils import make_request
 
-__all__ = [
-    'list_assets',
-    'fetch_asset_settings',
-    'watch_asset_settings',
-    'run_analysis',
-]
+__all__ = ["list_assets", "fetch_asset_settings", "watch_asset_settings", "run_analysis"]
 
 
-ALL_ASSET_TYPES = ['rig', 'crew', 'pump']
+ALL_ASSET_TYPES = ["rig", "crew", "pump"]
 
 
 request_with_timeout = partial(make_request, timeout=(3.05, 5), max_retries=5)
 
 
 def list_assets(process_name, process_settings, output_info, asset_type=None):
-    live_settings = process_settings['live']
-    host = live_settings['host']
+    live_settings = process_settings["live"]
+    host = live_settings["host"]
     data = []
 
     if asset_type in ALL_ASSET_TYPES:
@@ -37,12 +32,12 @@ def list_assets(process_name, process_settings, output_info, asset_type=None):
         chosen_asset_types = []
 
     for atype in chosen_asset_types:
-        url = '{}/services/plugin-liverig/assets/{}'.format(host, atype)
+        url = "{}/services/plugin-liverig/assets/{}".format(host, atype)
         try:
             response_data = request_with_timeout(process_name, process_settings, output_info, url)
             if response_data is not None:
                 for asset in response_data:
-                    asset['asset_type'] = atype
+                    asset["asset_type"] = atype
                     data.append(asset)
         except Exception as e:
             logging.exception(e)
@@ -50,33 +45,26 @@ def list_assets(process_name, process_settings, output_info, asset_type=None):
     return data
 
 
-def fetch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type='rig'):
-    live_settings = process_settings['live']
-    host = live_settings['host']
+def fetch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type="rig"):
+    live_settings = process_settings["live"]
+    host = live_settings["host"]
 
-    url = '{}/services/plugin-liverig/assets/{}/{}/normalizer'.format(host, asset_type, asset_id)
+    url = "{}/services/plugin-liverig/assets/{}/{}/normalizer".format(host, asset_type, asset_id)
     return request_with_timeout(process_name, process_settings, output_info, url)
 
 
-def watch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type='rig'):
+def watch_asset_settings(process_name, process_settings, output_info, asset_id, asset_type="rig"):
     initial_config = fetch_asset_settings(
-        process_name,
-        process_settings,
-        output_info,
-        asset_id,
-        asset_type=asset_type
+        process_name, process_settings, output_info, asset_id, asset_type=asset_type
     )
 
-    asset_query_template = '__asset event:(normalizer|delete) type:{} id:{}'
+    asset_query_template = "__asset event:(normalizer|delete) type:{} id:{}"
     asset_query = asset_query_template.format(asset_type, asset_id)
     results_process, results_queue = query.run(
-        process_name,
-        process_settings,
-        asset_query,
-        realtime=True,
+        process_name, process_settings, asset_query, realtime=True
     )
 
-    results_queue.put({'config': initial_config})
+    results_queue.put({"config": initial_config})
     return _settings_update_handler(results_queue)
 
 
@@ -85,25 +73,25 @@ def _settings_update_handler(events_queue):
 
     while True:
         event = events_queue.get()
-        settings_queue.put(event.get('config', {}))
+        settings_queue.put(event.get("config", {}))
 
     return settings_queue
 
 
 def run_analysis(process_name, process_settings, output_info, **kwargs):
-    live_settings = process_settings['live']
-    host = live_settings['host']
+    live_settings = process_settings["live"]
+    host = live_settings["host"]
 
     qs_data = {
-        'assetId': kwargs.get('assetId'),
-        'channel': kwargs.get('channel'),
-        'qualifier': kwargs.get('channel'),
-        'begin': kwargs.get('begin'),
-        'end': kwargs.get('end'),
-        'computeFields': kwargs.get('computeFields'),
+        "assetId": kwargs.get("assetId"),
+        "channel": kwargs.get("channel"),
+        "qualifier": kwargs.get("channel"),
+        "begin": kwargs.get("begin"),
+        "end": kwargs.get("end"),
+        "computeFields": kwargs.get("computeFields"),
     }
 
     params = urllib.parse.urlencode(qs_data, doseq=True)
-    url = '{}/services/plugin-liverig-vis/auto-analysis/analyse?{}'.format(host, params)
+    url = "{}/services/plugin-liverig-vis/auto-analysis/analyse?{}".format(host, params)
 
     return request_with_timeout(process_name, process_settings, output_info, url)
