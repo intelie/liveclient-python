@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 
-__all__ = ['get_timestamp']
+__all__ = ["get_timestamp"]
 
 
 def get_timestamp():

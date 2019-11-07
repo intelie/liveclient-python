@@ -6,7 +6,7 @@ from requests.exceptions import Timeout
 
 from live_client.utils import logging
 
-__all__ = ['ensure_timeout']
+__all__ = ["ensure_timeout"]
 
 
 @contextmanager

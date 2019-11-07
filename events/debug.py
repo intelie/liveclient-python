@@ -3,7 +3,7 @@ import json
 
 from live_client.utils.timestamp import get_timestamp
 
-__all__ = ['format_and_send']
+__all__ = ["format_and_send"]
 
 
 def format_and_send(event_type, statuses, output_settings):
@@ -15,6 +15,6 @@ def format_and_send(event_type, statuses, output_settings):
 
 def format_event(timestamp, event_type, statuses):
     event_data = statuses.copy()
-    event_data['__type'] = event_type
-    event_data['liverig__index__timestamp'] = timestamp
+    event_data["__type"] = event_type
+    event_data["liverig__index__timestamp"] = timestamp
     return json.dumps(event_data)
