@@ -2,7 +2,7 @@
 import asyncio
 from multiprocessing import Process, Queue
 
-from eliot import start_action, preserve_context
+from eliot import start_action
 from setproctitle import setproctitle
 
 from aiocometd import Client
@@ -74,7 +74,6 @@ def watch(url, channels, output_queue):
     loop.run_until_complete(read_results(url, channels, output_queue))
 
 
-@preserve_context
 def run(
     process_name,
     process_settings,
