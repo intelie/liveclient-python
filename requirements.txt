@@ -1,0 +1,6 @@
+aiocometd==0.4.5
+eliot==1.10.0
+eliot-tree==18.1.1
+pytz==2019.2
+requests==2.22.0
+setproctitle==1.1.10
