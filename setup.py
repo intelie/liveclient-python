@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='live_client',
     version='0.0.1',
-    description='General purpose libraries for Python',
+    description='Client libraries to connect with the Intelie LIVE platform',
     url='https://github.com/intelie/liveclient-python',
     author='Vitor Mazzi',
     author_email='vitor.mazzi@intelie.com.br',
