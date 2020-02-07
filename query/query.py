@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import queue
 from multiprocessing import Process, Queue
 
 from eliot import start_action
 from setproctitle import setproctitle
-
 from aiocometd import Client
 
-from live_client.events.constants import EVENT_TYPE_DESTROY
+from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT
 from live_client.connection.rest_input import build_session
 from live_client.utils.network import retry_on_failure, ensure_timeout
 from live_client.utils import logging
 
 
-__all__ = ["run", "start", "watch"]
+__all__ = ["on_event", "run", "start", "watch"]
 
 
 def start(process_settings, statement, realtime=False, span=None, timeout=None, max_retries=0):
@@ -98,3 +98,33 @@ def run(process_settings, statement, realtime=False, span=None, timeout=None, ma
         process.start()
 
     return process, events_queue
+
+
+def on_event(statement, process_settings, realtime=True, span=None, timeout=None, max_retries=None):
+    def handler_decorator(f):
+        def wrapper(*args, **kwargs):
+            results_process, results_queue = run(
+                process_settings, statement, realtime=True, timeout=timeout, max_retries=max_retries
+            )
+            last_result = None
+
+            while True:
+                try:
+                    event = results_queue.get(timeout=timeout)
+                except queue.Empty as e:
+                    logging.exception(e)
+                    break
+
+                event_type = event.get("data", {}).get("type")
+                if event_type != EVENT_TYPE_EVENT:
+                    continue
+
+                last_result = f(event, *args, **kwargs)
+
+            results_process.join()
+
+            return last_result
+
+        return wrapper
+
+    return handler_decorator
