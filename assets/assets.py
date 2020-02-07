@@ -60,9 +60,7 @@ def watch_asset_settings(process_name, process_settings, output_info, asset_id, 
 
     asset_query_template = "__asset event:(normalizer|delete) type:{} id:{}"
     asset_query = asset_query_template.format(asset_type, asset_id)
-    results_process, results_queue = query.run(
-        process_name, process_settings, asset_query, realtime=True
-    )
+    results_process, results_queue = query.run(process_settings, asset_query, realtime=True)
 
     results_queue.put({"config": initial_config})
     return _settings_update_handler(results_queue)

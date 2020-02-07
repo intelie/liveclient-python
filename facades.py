@@ -36,7 +36,6 @@ class LiveClient:
     def run_query(self, query_str, realtime, span=None):
         run_query = partial(
             query.run,
-            self.process_name,
             self.process_settings,
             timeout=DEFAULT_REQUEST_TIMEOUT,
             max_retries=DEFAULT_MAX_RETRIES,

@@ -74,15 +74,7 @@ def watch(url, channels, output_queue):
     loop.run_until_complete(read_results(url, channels, output_queue))
 
 
-def run(
-    process_name,
-    process_settings,
-    statement,
-    realtime=False,
-    span=None,
-    timeout=None,
-    max_retries=0,
-):  # NOQA
+def run(process_settings, statement, realtime=False, span=None, timeout=None, max_retries=0):
     with start_action(action_type="query.run", statement=statement):
         live_settings = process_settings["live"]
         host = live_settings["host"]
