@@ -10,14 +10,13 @@ from live_client.utils import logging
 __all__ = ["make_request", "only_enabled_curves"]
 
 
-def make_request(process_name, process_settings, output_info, url, timeout=None, max_retries=0):
-    connection_func, output_settings = output_info
+def make_request(process_settings, url, timeout=None, max_retries=0):
     live_settings = process_settings["live"]
 
-    if "session" not in output_settings:
-        output_settings.update(session=build_session(live_settings))
+    if "session" not in live_settings:
+        live_settings.update(session=build_session(live_settings))
 
-    session = output_settings["session"]
+    session = live_settings["session"]
 
     with start_action(action_type="make request", url=url):
         with retry_on_failure(timeout, max_retries=max_retries):

@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 import uuid
 
+from live_client.connection import autodetect
 from live_client.utils.timestamp import get_timestamp
 from live_client.utils import logging
 
 __all__ = ["create", "format_and_send"]
 
 
-def create(process_name, annotation_data, process_settings=None, output_info=None, room=None):
-    destination_settings = process_settings["destination"]
-    connection_func, output_settings = output_info
+def create(annotation_data, process_settings=None, room=None):
+    output_settings = process_settings["output"]
+    connection_func = autodetect.build_sender_function(process_settings["live"])
 
     if room is None:
-        room = destination_settings["room"]
+        room = output_settings["room"]
 
     output_settings.update(
-        room=room,
-        author=destination_settings["author"],
-        dashboard=destination_settings.get("dashboard", {}),
+        room=room, author=output_settings["author"], dashboard=output_settings.get("dashboard", {})
     )
     format_and_send(annotation_data, output_settings, connection_func=connection_func)
 

@@ -7,10 +7,15 @@ from live_client.utils import logging
 
 __all__ = ["send_event"]
 
+REQUIRED_PARAMETERS = ["ip", "port"]
 
-def send_event(event, output_settings):
-    ip = output_settings["ip"]
-    port = output_settings["port"]
+
+def send_event(event, live_settings=None):
+    if live_settings is None:
+        live_settings = {}
+
+    ip = live_settings["ip"]
+    port = live_settings["port"]
 
     if not event:
         return

@@ -22,10 +22,10 @@ def start(process_settings, statement, realtime=False, span=None, timeout=None, 
     if "session" not in process_settings:
         process_settings.update(session=build_session(live_settings))
 
-    host = live_settings["host"]
+    live_url = live_settings["url"]
     session = process_settings["session"]
 
-    api_url = f"{host}/rest/query"
+    api_url = f"{live_url}/rest/query"
     query_payload = [
         {
             "provider": "pipes",
@@ -77,7 +77,6 @@ def watch(url, channels, output_queue):
 def run(process_settings, statement, realtime=False, span=None, timeout=None, max_retries=0):
     with start_action(action_type="query.run", statement=statement):
         live_settings = process_settings["live"]
-        host = live_settings["host"]
 
         channels = start(
             process_settings,
@@ -90,8 +89,8 @@ def run(process_settings, statement, realtime=False, span=None, timeout=None, ma
 
         logging.debug(f"Results channel is {channels}")
 
-        host = live_settings["host"]
-        results_url = "{}/cometd".format(host)
+        live_url = live_settings["url"]
+        results_url = f"{live_url}/cometd"
 
         events_queue = Queue()
         process = Process(target=watch, args=(results_url, channels, events_queue))
