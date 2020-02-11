@@ -26,7 +26,7 @@ def format_and_send(annotation_data, settings, connection_func=None):
     event = format_event(timestamp, annotation_data, settings)
 
     logging.debug("Creating annotation {}".format(event))
-    connection_func(event, settings)
+    connection_func(event)
 
 
 def format_event(timestamp, annotation_data, settings):
