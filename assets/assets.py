@@ -39,8 +39,8 @@ def list_assets(process_settings, asset_type=None):
                 for asset in response_data:
                     asset["asset_type"] = atype
                     data.append(asset)
-        except Exception as e:
-            logging.exception(e)
+        except Exception:
+            logging.exception()
 
     return data
 

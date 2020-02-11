@@ -110,8 +110,8 @@ def on_event(statement, process_settings, realtime=True, span=None, timeout=None
             while True:
                 try:
                     event = results_queue.get(timeout=timeout)
-                except queue.Empty as e:
-                    logging.exception(e)
+                except queue.Empty:
+                    logging.exception()
                     break
 
                 event_type = event.get("data", {}).get("type")
