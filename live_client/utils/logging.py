@@ -59,28 +59,26 @@ def level_is_logged(message_severity, min_level=None):
     return result
 
 
-def setup_live_logging(settings):
-    log_settings = settings.get("output", {}).get("rest-log", {})
+def setup_live_logging(logging_settings, live_settings):
+    event_type = logging_settings.get("event_type", "dda_log")
+    level = logging_settings.get("level", default_level)
 
-    event_type = log_settings.get("event_type", "dda_log")
-    url = log_settings.get("url")
-    username = log_settings.get("username")
-    password = log_settings.get("password")
-    level = log_settings.get("level", default_level)
+    username = live_settings.get("username")
+    password = live_settings.get("password")
+    logging_url = f"{live_settings['url']}{live_settings['rest_input']}"
 
     global log_level
     log_level = level
-    log_function = async_event_sender({"url": url, "username": username, "password": password})
+    log_function = async_event_sender(live_settings)
 
-    if event_type and url and username and password:
+    if event_type and logging_url and username and password:
         add_destinations(
             partial(log_to_live, log_function=log_function, event_type=event_type, min_level=level)
         )
 
 
-def setup_python_logging(settings):
-    log_settings = settings.get("output", {}).get("rest-log", {})
-    level = log_settings.get("level", default_level)
+def setup_python_logging(logging_settings):
+    level = logging_settings.get("level", default_level)
 
     log_level = getattr(python_logging, level.upper())
 

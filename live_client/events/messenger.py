@@ -3,6 +3,7 @@ import uuid
 from enum import Enum
 
 from . import raw
+from live_client.connection.autodetect import build_sender_function
 from live_client.utils.timestamp import get_timestamp
 from live_client.utils import logging
 
@@ -24,10 +25,10 @@ __all__ = [
 ]
 
 
-def join_messenger(process_name, process_settings, output_info):
-    connection_func, output_settings = output_info
+def join_messenger(process_settings):
+    connection_func = build_sender_function(process_settings["live"])
 
-    bot_data = process_settings["destination"]["author"]
+    bot_data = process_settings["output"]["author"]
     control_data = {
         "broadcast": True,
         "__skipstorage": True,
@@ -35,34 +36,24 @@ def join_messenger(process_name, process_settings, output_info):
         "user": bot_data,
     }
 
-    event = format_event(EVENT_TYPES["control"], get_timestamp(), control_data, output_settings)
-    connection_func(event, output_settings)
+    event = format_event(EVENT_TYPES["control"], get_timestamp(), control_data)
+    connection_func(event)
 
 
-def add_to_room(process_name, process_settings, output_info, room_id, sender):
+def add_to_room(process_settings, room_id, sender):
     return add_or_remove_from_room(
-        process_name,
-        process_settings,
-        output_info,
-        room_id,
-        sender,
-        action=CONTROL_ACTIONS.ADD_USER,
+        process_settings, room_id, sender, action=CONTROL_ACTIONS.ADD_USER
     )
 
 
-def remove_from_room(process_name, process_settings, output_info, room_id, sender):
+def remove_from_room(process_settings, room_id, sender):
     return add_or_remove_from_room(
-        room_id,
-        sender,
-        process_name,
-        process_settings,
-        output_info,
-        action=CONTROL_ACTIONS.REMOVE_USER,
+        room_id, sender, process_settings, action=CONTROL_ACTIONS.REMOVE_USER
     )
 
 
-def add_or_remove_from_room(process_name, process_settings, output_info, room_id, sender, action):
-    connection_func, output_settings = output_info
+def add_or_remove_from_room(process_settings, room_id, sender, action):
+    connection_func = build_sender_function(process_settings["live"])
 
     control_data = {
         "action": "room_users_updated",
@@ -72,7 +63,7 @@ def add_or_remove_from_room(process_name, process_settings, output_info, room_id
         "room": {"id": room_id},
     }
 
-    bot_data = process_settings["destination"]["author"]
+    bot_data = process_settings["output"]["author"]
 
     if action == CONTROL_ACTIONS.ADD_USER:
         control_key = "addedOrUpdatedUsers"
@@ -82,66 +73,56 @@ def add_or_remove_from_room(process_name, process_settings, output_info, room_id
 
     control_data[control_key].append(bot_data)
 
-    event = format_event(EVENT_TYPES["control"], get_timestamp(), control_data, output_settings)
-    connection_func(event, output_settings)
+    event = format_event(EVENT_TYPES["control"], get_timestamp(), control_data)
+    connection_func(event)
 
 
-def send_message(process_name, message, timestamp, **kwargs):
+def send_message(message, timestamp, **kwargs):
     message_type = kwargs.pop("message_type", None)
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.EVENT):
-        maybe_send_message_event(process_name, message, timestamp, **kwargs)
+        maybe_send_message_event(message, timestamp, **kwargs)
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.CHAT):
-        maybe_send_chat_message(process_name, message, **kwargs)
+        maybe_send_chat_message(message, **kwargs)
 
 
-def maybe_send_message_event(process_name, message, timestamp, **kwargs):
-    process_settings = kwargs.get("process_settings", {})
-    output_info = kwargs.get("output_info", None)
-
-    destination_settings = process_settings["destination"]
-    message_event = destination_settings.get("message_event", {})
+def maybe_send_message_event(message, timestamp, process_settings, **kwargs):
+    output_settings = process_settings["output"]
+    message_event = output_settings.get("message_event", {})
     event_type = message_event.get("event_type")
     messages_mnemonic = message_event.get("mnemonic")
 
     if event_type and messages_mnemonic:
-        connection_func, output_settings = output_info
+        connection_func = build_sender_function(process_settings["live"])
         event = {"timestamp": timestamp, messages_mnemonic: {"value": message}}
-        logging.debug(
-            "{}: Sending message event '{}' for '{}'".format(process_name, event, event_type)
-        )
-        raw.format_and_send(event_type, event, output_settings, connection_func=connection_func)
+        logging.debug("Sending message event '{}' for '{}'".format(event, event_type))
+        raw.format_and_send(event_type, event, connection_func=connection_func)
 
 
-def maybe_send_chat_message(process_name, message, **kwargs):
+def maybe_send_chat_message(message, process_settings, **kwargs):
     author_name = kwargs.get("author_name", None)
-    process_settings = kwargs.get("process_settings", {})
-    output_info = kwargs.get("output_info", None)
 
-    destination_settings = process_settings["destination"]
-    room = kwargs.get("room", destination_settings.get("room"))
-    author = destination_settings.get("author")
+    output_settings = process_settings["output"]
+    author = output_settings.get("author")
+    room = kwargs.get("room", output_settings.get("room"))
 
     if (room is None) or (author is None):
         logging.warn(
-            "{}: Cannot send message, room ({}) and/or author ({}) missing. Message is '{}'",
-            process_name,
+            "Cannot send message, room ({}) and/or author ({}) missing. Message is '{}'",
             room,
             author,
             message,
         )
 
     else:
-        connection_func, output_settings = output_info
+        connection_func = build_sender_function(process_settings["live"])
 
         if author_name:
             author.update(name=author_name)
 
         output_settings.update(room=room, author=author)
-        logging.debug(
-            "{}: Sending message '{}' from {} to {}".format(process_name, message, author, room)
-        )
+        logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
         format_and_send(message, output_settings, connection_func=connection_func)
 
 
@@ -150,7 +131,7 @@ def format_and_send(message, settings, connection_func=None):
     event = format_message_event(timestamp, message, settings)
 
     logging.debug("Sending message {}".format(event))
-    connection_func(event, settings)
+    connection_func(event)
 
 
 def format_message_event(timestamp, message, settings):
@@ -159,11 +140,10 @@ def format_message_event(timestamp, message, settings):
 
     message_data = {"message": message, "room": room_data, "author": author_data}
 
-    return format_event(EVENT_TYPES["message"], timestamp, message_data, settings)
+    return format_event(EVENT_TYPES["message"], timestamp, message_data)
 
 
-def format_event(event_type, timestamp, event_data, settings):
-
+def format_event(event_type, timestamp, event_data):
     base_event = {"__type": event_type, "uid": str(uuid.uuid4()), "createdAt": timestamp}
     base_event.update(event_data)
     return base_event
