@@ -41,8 +41,6 @@ if __name__ == "__main__":
 
     @on_event(example_query, settings, span=span, timeout=read_timeout)
     def handle_events(event, settings=None):
-        # Generate alerts whether the threshold was reached
-        # a new event means another threshold breach
         event_data = event.get("data", {})
         content = event_data.get("content", {})
         template = "New query: '{}'"
