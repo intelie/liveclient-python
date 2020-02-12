@@ -1,11 +1,3 @@
-# Live Client
-
-A toolset to interact with the Intelie LIVE Platform
-
-
-## Usage example
-
-```python
 # -*- coding: utf-8 -*-
 from live_client.query import on_event
 from live_client.events import messenger
@@ -56,4 +48,3 @@ if __name__ == "__main__":
         return
 
     handle_events(settings=settings)
-```
