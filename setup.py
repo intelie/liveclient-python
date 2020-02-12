@@ -1,21 +1,42 @@
-from setuptools import setup
+import os
+from setuptools import setup, find_packages
+
+__all__ = ['setup']
+
+
+def read_file(filename):
+    """Read a file into a string"""
+    path = os.path.abspath(os.path.dirname(__file__))
+    filepath = os.path.join(path, filename)
+    try:
+        return open(filepath).read()
+    except IOError:
+        return ''
+
+
+def get_readme():
+    """Return the README file contents. Supports text,rst, and markdown"""
+    for name in ('README', 'README.rst', 'README.md'):
+        if os.path.exists(name):
+            return read_file(name)
+    return ''
+
+
+def install_requires():
+    requirements = read_file('requirements.txt')
+    return requirements
+
 
 setup(
     name='live_client',
     version='0.0.1',
     description='Client libraries to connect with the Intelie LIVE platform',
+    long_description=get_readme(),
+    packages=find_packages(),
     url='https://github.com/intelie/liveclient-python',
     author='Vitor Mazzi',
     author_email='vitor.mazzi@intelie.com.br',
     license='Apache',
-    packages=['live_client'],
-    install_requires=[
-        'aiocometd==0.4.5',
-        'eliot==1.10.0',
-        'eliot-tree==18.1.1',
-        'pytz==2019.2',
-        'requests==2.22.0',
-        'setproctitle==1.1.10',
-    ],
+    install_requires=install_requires(),
     zip_safe=False
 )
