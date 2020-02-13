@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     settings = {
         "output": {
-            "author": {"id": args.user_id, "name": args.username},
+            "author": {"id": args.user_id, "name": "🤖 Messages bot "},
             "room": {"id": args.room_id},
         },
         "live": {
@@ -43,6 +43,8 @@ if __name__ == "__main__":
             "user_id": args.user_id,
         },
     }
+
+    messenger.join_messenger(settings)
 
     for line in sys.stdin:
         if not line.strip():
