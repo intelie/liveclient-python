@@ -7,8 +7,8 @@ from live_client.events import annotation
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(
-        description="Send messages to one of the messenger rooms on Intelie Live",
-        epilog="Reads from standard input and sends a message for every line read",
+        description="Creates annotations in one of the rooms and/or dashboards on Intelie Live",
+        epilog="Reads from standard input and creates an annotation for every line read",
     )
     parser.add_argument("--live_url", dest="live_url", required=True, help="The url Intelie Live")
     parser.add_argument("--username", dest="username", required=True, help="Live username")
@@ -53,8 +53,8 @@ def build_settings(args):
 
 if __name__ == "__main__":
     """
-    Connects to a live instance and watches every query which is started
-    For each query, sends a message to one of the messenger's rooms
+    Creates annotations in one of the rooms and/or dashboards on Intelie Live
+    Reads from standard input and creates an annotation for every line read
     """
     args = parse_arguments(sys.argv)
     settings = build_settings(args)

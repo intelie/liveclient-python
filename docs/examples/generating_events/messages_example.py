@@ -40,8 +40,8 @@ def build_settings(args):
 
 if __name__ == "__main__":
     """
-    Connects to a live instance and watches every query which is started
-    For each query, sends a message to one of the messenger's rooms
+    Send messages to one of the messenger rooms on Intelie Live
+    Reads from standard input and sends a message for every line read
     """
     args = parse_arguments(sys.argv)
     settings = build_settings(args)

@@ -39,8 +39,8 @@ def build_settings(args):
 
 if __name__ == "__main__":
     """
-    Reads from standard input and sends an event to live for every line read.
-    Note: The generated event will not be stored on live.
+    Send events to Intelie Live
+    Reads from standard input and sends an event to live for every line read
     """
     args = parse_arguments(sys.argv)
     event_type = args.event_type
