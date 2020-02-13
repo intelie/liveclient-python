@@ -40,7 +40,7 @@ def list_assets(process_settings, asset_type=None):
                     asset["asset_type"] = atype
                     data.append(asset)
         except Exception:
-            logging.exception()
+            logging.exception(f"Error fetching asset list for {atype}")
 
     return data
 

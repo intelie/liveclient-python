@@ -111,7 +111,7 @@ def on_event(statement, process_settings, realtime=True, span=None, timeout=None
                 try:
                     event = results_queue.get(timeout=timeout)
                 except queue.Empty:
-                    logging.exception()
+                    logging.exception(f"No results after {timeout} seconds")
                     break
 
                 event_type = event.get("data", {}).get("type")
