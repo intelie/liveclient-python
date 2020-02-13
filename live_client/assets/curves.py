@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .utils import make_request
+from live_client.utils import http
 
 __all__ = ["fetch_curves"]
 
@@ -11,5 +11,5 @@ def fetch_curves(process_settings):
 
     url = "{}/services/plugin-liverig/curves/".format(host)
 
-    data = make_request(process_settings, url)
+    data = http.request_with_timeout(url, process_settings)
     return data

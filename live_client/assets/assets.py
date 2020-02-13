@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
 from multiprocessing import Queue
-from functools import partial
 import urllib
 
 from live_client import query
-from live_client.utils import logging
-
-from .utils import make_request
+from live_client.utils import logging, http
 
 __all__ = ["list_assets", "fetch_asset_settings", "watch_asset_settings", "run_analysis"]
 
 
 ALL_ASSET_TYPES = ["rig", "crew", "pump"]
-
-
-request_with_timeout = partial(make_request, timeout=(3.05, 5), max_retries=5)
 
 
 def list_assets(process_settings, asset_type=None):
@@ -32,9 +26,9 @@ def list_assets(process_settings, asset_type=None):
         chosen_asset_types = []
 
     for atype in chosen_asset_types:
-        url = f"{url}/services/plugin-liverig/assets/{atype}"
+        asset_url = f"{url}/services/plugin-liverig/assets/{atype}"
         try:
-            response_data = request_with_timeout(process_settings, url)
+            response_data = http.request_with_timeout(asset_url, process_settings)
             if response_data is not None:
                 for asset in response_data:
                     asset["asset_type"] = atype
@@ -48,9 +42,8 @@ def list_assets(process_settings, asset_type=None):
 def fetch_asset_settings(process_settings, asset_id, asset_type="rig"):
     live_settings = process_settings["live"]
     url = live_settings["url"]
-
-    url = f"{url}/services/plugin-liverig/assets/{asset_type}/{asset_id}/normalizer"
-    return request_with_timeout(process_settings, url)
+    asset_url = f"{url}/services/plugin-liverig/assets/{asset_type}/{asset_id}/normalizer"
+    return http.request_with_timeout(asset_url, process_settings)
 
 
 def watch_asset_settings(process_settings, asset_id, asset_type="rig"):
@@ -90,4 +83,4 @@ def run_analysis(process_settings, **kwargs):
     params = urllib.parse.urlencode(qs_data, doseq=True)
     analysis_url = f"{url}/services/plugin-liverig-vis/auto-analysis/analyse?{params}"
 
-    return request_with_timeout(process_settings, analysis_url)
+    return http.request_with_timeout(analysis_url, process_settings)
