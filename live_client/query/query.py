@@ -115,7 +115,9 @@ def on_event(statement, process_settings, realtime=True, span=None, timeout=None
                     break
 
                 event_type = event.get("data", {}).get("type")
-                if event_type != EVENT_TYPE_EVENT:
+                if event_type == EVENT_TYPE_DESTROY:
+                    break
+                elif event_type != EVENT_TYPE_EVENT:
                     continue
 
                 last_result = f(event, *args, **kwargs)
