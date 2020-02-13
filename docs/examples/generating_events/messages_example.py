@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
-from live_client.query import on_event
+import sys
+import argparse
+
 from live_client.events import messenger
 
 
-read_timeout = 120
-settings = {
-    "output": {
-        "author": {"id": 2, "name": "🤖 Query watcher"},
-        "room": {"id": "f1v7nljg8on2v2h5tm6v9bmdug"},
-    },
-    "live": {
-        "url": "http://localhost:8080",
-        "rest_input": "/services/plugin-restinput/shell/",
-        "username": "admin",  # Username as a string
-        "password": "admin",  # Password, as a string
-        "user_id": 1,  # The user's id on live, as an integer
-    },
-}
+def build_parser():
+    parser = argparse.ArgumentParser(
+        description="Send messages to one of the messenger rooms on Intelie Live",
+        epilog="Reads from standard input and sends a message for every line read",
+    )
+    parser.add_argument("--live_url", dest="live_url", required=True, help="The url Intelie Live")
+    parser.add_argument("--username", dest="username", required=True, help="Live username")
+    parser.add_argument("--password", dest="password", required=True, help="Live password")
+    parser.add_argument(
+        "--rest_input", dest="rest_input", required=True, help="Path of the rest input integration"
+    )
+    parser.add_argument("--user_id", dest="user_id", required=True, help="Live user id")
+    parser.add_argument("--room_id", dest="room_id", required=True, help="Target room id")
+
+    return parser
 
 
 if __name__ == "__main__":
@@ -24,19 +27,25 @@ if __name__ == "__main__":
     Connects to a live instance and watches every query which is started
     For each query, sends a message to one of the messenger's rooms
     """
+    parser = build_parser()
+    args = parser.parse_args()
 
-    example_query = "__queries action:start => expression, description"
-    span = f"last 60 seconds"
+    settings = {
+        "output": {
+            "author": {"id": args.user_id, "name": args.username},
+            "room": {"id": args.room_id},
+        },
+        "live": {
+            "url": args.live_url,
+            "rest_input": args.rest_input,
+            "username": args.username,
+            "password": args.password,
+            "user_id": args.user_id,
+        },
+    }
 
-    @on_event(example_query, settings, span=span, timeout=read_timeout)
-    def handle_events(event, settings=None):
-        event_data = event.get("data", {})
-        content = event_data.get("content", {})
-        template = "New query: '{}'"
-        for item in content:
-            message = template.format(item["expression"])
-            messenger.send_message(message, timestamp=item["timestamp"], process_settings=settings)
+    for line in sys.stdin:
+        if not line.strip():
+            continue
 
-        return
-
-    handle_events(settings=settings)
+        messenger.send_message(line, process_settings=settings)

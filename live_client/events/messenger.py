@@ -77,7 +77,8 @@ def add_or_remove_from_room(process_settings, room_id, sender, action):
     connection_func(event)
 
 
-def send_message(message, timestamp, **kwargs):
+def send_message(message, **kwargs):
+    timestamp = kwargs.pop("timestamp", get_timestamp())
     message_type = kwargs.pop("message_type", None)
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.EVENT):
