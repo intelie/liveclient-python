@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
 import argparse
+import eliot
 from pprint import pprint
 
+from live_client.utils.logging import log_to_stdout
 from live_client.assets import list_assets, fetch_asset_settings
 
 
@@ -27,9 +29,15 @@ if __name__ == "__main__":
     settings = build_settings(args)
 
     asset_list = list_assets(settings)
-    for item in asset_list:
-        aid = item["id"]
-        atype = item["asset_type"]
-        asset_data = fetch_asset_settings(settings, aid, atype)
-        print(f"\nInformation for {atype}/{aid}")
-        pprint(asset_data, depth=1)
+    if asset_list is None:
+        # Error, check the logs
+        print("Error. Please check the following log:")
+        eliot.add_destinations(log_to_stdout)
+
+    else:
+        for item in asset_list:
+            aid = item["id"]
+            atype = item["asset_type"]
+            asset_data = fetch_asset_settings(settings, aid, atype)
+            print(f"\nInformation for {atype}/{aid}")
+            pprint(asset_data, depth=1)

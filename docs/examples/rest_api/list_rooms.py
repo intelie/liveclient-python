@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
 import argparse
+import eliot
 
+from live_client.utils.logging import log_to_stdout
 from live_client.resources.messenger import list_rooms
 
 
@@ -27,7 +29,14 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
 
-    print(f"List of chat rooms on {args.live_url}")
-    template = "- Room {id}, name: {name}, users: {users}"
-    for item in list_rooms(settings):
-        print(template.format(**item))
+    rooms_list = list_rooms(settings)
+    if rooms_list is None:
+        # Error, check the logs
+        print("Error. Please check the following log:")
+        eliot.add_destinations(log_to_stdout)
+
+    else:
+        print(f"List of chat rooms on {args.live_url}")
+        template = "- Room {id}, name: {name}, users: {users}"
+        for item in rooms_list:
+            print(template.format(**item))
