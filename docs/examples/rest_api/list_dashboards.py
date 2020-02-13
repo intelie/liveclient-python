@@ -36,10 +36,10 @@ if __name__ == "__main__":
         eliot.add_destinations(log_to_stdout)
 
     else:
-        dash_count = dashboards_info['total']
+        dash_count = dashboards_info["total"]
         print(f"There are {dash_count} dashboards on {args.live_url}")
 
         template = "- Dashboard {id:-3d}, url: {url:16s}, title: {title}"
-        dash_list = dashboards_info['data']
+        dash_list = dashboards_info["data"]
         for item in dash_list:
             print(template.format(**item))
