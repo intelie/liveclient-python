@@ -15,8 +15,8 @@ from live_client.events import messenger
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(
-        description="Send messages to one of the messenger rooms on Intelie Live",
-        epilog="Reads from standard input and sends a message for every line read",
+        description="Connects to a live instance and watches every query which is started",
+        epilog="For each query, sends a message to one of the messenger's rooms"
     )
     parser.add_argument("--live_url", dest="live_url", required=True, help="The url Intelie Live")
     parser.add_argument("--username", dest="username", required=True, help="Live username")
