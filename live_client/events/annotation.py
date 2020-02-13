@@ -4,6 +4,7 @@ import uuid
 from live_client.connection import autodetect
 from live_client.utils.timestamp import get_timestamp
 from live_client.utils import logging
+from .constants import DEFAULT_ANNOTATION_DURATION
 
 __all__ = ["create", "format_and_send"]
 
@@ -40,7 +41,6 @@ def format_event(timestamp, annotation_data, settings):
         __src=message_event.get("__src", "live_agent"),
         uid=message_event.get("uid", str(uuid.uuid4())),
         createdAt=int(message_event.get("createdAt", timestamp)),
-        begin=int(message_event.get("begin", timestamp)),
         author=author_data.get("name"),
         room=room_data,
         dashboardId=dashboard_data.get("id"),
@@ -48,9 +48,14 @@ def format_event(timestamp, annotation_data, settings):
         searchable=True,
     )
 
+    begin = int(message_event.get("begin", timestamp))
+
     end = message_event.pop("end", None)
-    if (end is not None) and end > 0:
-        message_event.update(end=int(end))
+    if (end is None) or end < begin:
+        end = begin + DEFAULT_ANNOTATION_DURATION
+
+    message_event.update(begin=begin)
+    message_event.update(end=int(end))
 
     def has_invalid_value(key):
         return message_event.get(key, -1) in (0, None)

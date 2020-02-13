@@ -8,3 +8,5 @@ EVENT_TYPE_DESTROY = "destroy"
 UOM_KEY = "uom"
 VALUE_KEY = "value"
 TIMESTAMP_KEY = "timestamp"
+
+DEFAULT_ANNOTATION_DURATION = 30000
