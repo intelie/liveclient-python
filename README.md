@@ -6,7 +6,6 @@ A toolset to interact with the Intelie LIVE Platform
 ## Usage example
 
 ```python
-# -*- coding: utf-8 -*-
 import sys
 import argparse
 
@@ -74,3 +73,7 @@ if __name__ == "__main__":
 
     handle_events(settings=settings)
 ```
+
+## Development
+
+This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
