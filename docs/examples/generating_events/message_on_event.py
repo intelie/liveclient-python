@@ -1,11 +1,3 @@
-# Live Client
-
-A toolset to interact with the Intelie LIVE Platform
-
-
-## Usage example
-
-```python
 # -*- coding: utf-8 -*-
 import sys
 import argparse
@@ -66,11 +58,8 @@ if __name__ == "__main__":
         for item in content:
             message = template.format(item["expression"])
             print(message)
-            messenger.send_message(
-                message, timestamp=item["timestamp"], process_settings=settings
-            )
+            messenger.send_message(message, timestamp=item["timestamp"], process_settings=settings)
 
         return
 
     handle_events(settings=settings)
-```
