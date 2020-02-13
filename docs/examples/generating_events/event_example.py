@@ -5,7 +5,7 @@ import argparse
 from live_client.events import raw
 
 
-def build_parser():
+def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         description="Send events to Intelie Live",
         epilog="Reads from standard input and sends an event to live for every line read",
@@ -23,18 +23,11 @@ def build_parser():
         help="event_type used for the events",
     )
 
-    return parser
+    return parser.parse_args(argv[1:])
 
 
-if __name__ == "__main__":
-    """
-    Reads from standard input and sends an event to live for every line read.
-    Note: The generated event will not be stored on live.
-    """
-    parser = build_parser()
-    args = parser.parse_args()
-
-    settings = {
+def build_settings(args):
+    return {
         "live": {
             "url": args.live_url,
             "username": args.username,
@@ -42,7 +35,16 @@ if __name__ == "__main__":
             "rest_input": args.rest_input,
         }
     }
+
+
+if __name__ == "__main__":
+    """
+    Reads from standard input and sends an event to live for every line read.
+    Note: The generated event will not be stored on live.
+    """
+    args = parse_arguments(sys.argv)
     event_type = args.event_type
+    settings = build_settings(args)
 
     for line in sys.stdin:
         if not line.strip():

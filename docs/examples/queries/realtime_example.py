@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+import sys
 import argparse
 
 from live_client.query import on_event
 
 
-def build_parser():
+def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         description="Writes each query started on Intelie Live to the standard output"
     )
@@ -12,19 +13,19 @@ def build_parser():
     parser.add_argument("--username", dest="username", required=True, help="Live username")
     parser.add_argument("--password", dest="password", required=True, help="Live password")
 
-    return parser
+    return parser.parse_args(argv[1:])
+
+
+def build_settings(args):
+    return {"live": {"url": args.live_url, "username": args.username, "password": args.password}}
 
 
 if __name__ == "__main__":
     """
     Connects to a live instance and prints every query which is started
     """
-    parser = build_parser()
-    args = parser.parse_args()
-
-    settings = {
-        "live": {"url": args.live_url, "username": args.username, "password": args.password}
-    }
+    args = parse_arguments(sys.argv)
+    settings = build_settings(args)
 
     example_query = "__queries action:start => expression, description"
 

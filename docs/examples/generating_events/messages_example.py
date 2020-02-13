@@ -5,7 +5,7 @@ import argparse
 from live_client.events import messenger
 
 
-def build_parser():
+def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         description="Send messages to one of the messenger rooms on Intelie Live",
         epilog="Reads from standard input and sends a message for every line read",
@@ -19,20 +19,13 @@ def build_parser():
     parser.add_argument("--user_id", dest="user_id", required=True, help="Live user id")
     parser.add_argument("--room_id", dest="room_id", required=True, help="Target room id")
 
-    return parser
+    return parser.parse_args(argv[1:])
 
 
-if __name__ == "__main__":
-    """
-    Connects to a live instance and watches every query which is started
-    For each query, sends a message to one of the messenger's rooms
-    """
-    parser = build_parser()
-    args = parser.parse_args()
-
-    settings = {
+def build_settings(args):
+    return {
         "output": {
-            "author": {"id": args.user_id, "name": "🤖 Messages bot "},
+            "author": {"id": args.user_id, "name": "🤖  Messages bot "},
             "room": {"id": args.room_id},
         },
         "live": {
@@ -43,6 +36,15 @@ if __name__ == "__main__":
             "user_id": args.user_id,
         },
     }
+
+
+if __name__ == "__main__":
+    """
+    Connects to a live instance and watches every query which is started
+    For each query, sends a message to one of the messenger's rooms
+    """
+    args = parse_arguments(sys.argv)
+    settings = build_settings(args)
 
     messenger.join_messenger(settings)
 
