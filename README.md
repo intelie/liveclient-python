@@ -3,7 +3,7 @@
 A toolset to interact with the Intelie LIVE Platform
 
 
-## Usage example
+## Usage examples
 
 ```python
 import sys
@@ -73,6 +73,8 @@ if __name__ == "__main__":
 
     handle_events(settings=settings)
 ```
+
+More examples can be found on the folder `docs/examples`.
 
 ## Development
 
