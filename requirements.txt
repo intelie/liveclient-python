@@ -2,5 +2,5 @@ aiocometd==0.4.5
 eliot==1.12.0
 eliot-tree==19.0.1
 pytz==2019.2
-requests==2.22.0
+requests>=2,<3
 setproctitle==1.1.10
