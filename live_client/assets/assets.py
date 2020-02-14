@@ -1,11 +1,20 @@
 # -*- coding: utf-8 -*-
 from multiprocessing import Queue
 import urllib
+import uuid
 
 from live_client import query
 from live_client.utils import logging, http
+from live_client.utils.timestamp import get_timestamp
+from live_client.events import annotation
 
-__all__ = ["list_assets", "fetch_asset_settings", "watch_asset_settings", "run_analysis"]
+__all__ = [
+    "list_assets",
+    "fetch_asset_settings",
+    "watch_asset_settings",
+    "run_analysis",
+    "analyse_and_annotate",
+]
 
 
 ALL_ASSET_TYPES = ["rig", "crew", "pump"]
@@ -77,10 +86,18 @@ def run_analysis(process_settings, **kwargs):
         "qualifier": kwargs.get("channel"),
         "begin": kwargs.get("begin"),
         "end": kwargs.get("end"),
-        "computeFields": kwargs.get("computeFields"),
+        "computeFields": kwargs.get(
+            "computeFields", ["min", "max", "avg", "stdev", "linreg", "derivatives"]
+        ),
     }
 
     params = urllib.parse.urlencode(qs_data, doseq=True)
     analysis_url = f"{url}/services/plugin-liverig-vis/auto-analysis/analyse?{params}"
 
     return http.request_with_timeout(analysis_url, process_settings)
+
+
+def analyse_and_annotate(process_settings, **kwargs):
+    analysis = run_analysis(process_settings, **kwargs)
+    analysis.update(__src="auto-analysis", uid=str(uuid.uuid4()), createdAt=get_timestamp())
+    return annotation.create(analysis, process_settings=process_settings)
