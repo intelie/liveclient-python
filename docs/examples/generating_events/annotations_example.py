@@ -59,6 +59,7 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
 
+    print("\vAll messages written here will be sent to Live. Press CTRL+D to exit.\n")
     for line in sys.stdin:
         if not line.strip():
             continue

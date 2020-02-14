@@ -46,6 +46,7 @@ if __name__ == "__main__":
     event_type = args.event_type
     settings = build_settings(args)
 
+    print("\vAll messages written here will be sent to Live. Press CTRL+D to exit.\n")
     for line in sys.stdin:
         if not line.strip():
             continue

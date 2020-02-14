@@ -51,7 +51,7 @@ if __name__ == "__main__":
     span = f"last 60 seconds"
 
     @on_event(example_query, settings, span=span, timeout=120)
-    def handle_events(event, settings=None):
+    def handle_events(event):
         event_data = event.get("data", {})
         content = event_data.get("content", {})
         template = "New query: '{}'"
@@ -62,4 +62,5 @@ if __name__ == "__main__":
 
         return
 
-    handle_events(settings=settings)
+    print("\vWaiting for new events. Press CTRL+C to exit.\n")
+    handle_events()
