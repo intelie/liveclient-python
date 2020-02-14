@@ -11,9 +11,9 @@ def merge_extra_settings(func):
     def ret(*args, **kwargs):
         extra_settings = kwargs.pop("extra_settings", {})
         if extra_settings:
-            process_settings = kwargs.get("process_settings", {})
-            process_settings.update(extra_settings)
-            kwargs["process_settings"] = process_settings
+            settings = kwargs.get("settings", {})
+            settings.update(extra_settings)
+            kwargs["settings"] = settings
         return func(*args, **kwargs)
 
     return ret
@@ -25,14 +25,14 @@ def send_message(*args, **kwargs):
 
 
 class LiveClient:
-    def __init__(self, process_settings, room_id):
-        self.process_settings = process_settings
+    def __init__(self, settings, room_id):
+        self.settings = settings
         self.room_id = room_id
 
     def run_query(self, query_str, realtime, span=None):
         return query.run(
             query_str,
-            self.process_settings,
+            self.settings,
             realtime=realtime,
             span=span,
             timeout=DEFAULT_REQUEST_TIMEOUT,
@@ -41,8 +41,5 @@ class LiveClient:
 
     def send_message(self, message):
         return send_message(
-            message,
-            get_timestamp(),
-            process_settings=self.process_settings,
-            room={"id": self.room_id},
+            message, get_timestamp(), settings=self.settings, room={"id": self.room_id}
         )

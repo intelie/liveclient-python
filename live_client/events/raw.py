@@ -6,8 +6,8 @@ from live_client.connection import autodetect
 __all__ = ["format_event", "get_timestamp"]
 
 
-def create(event_type, event_data, process_settings=None):
-    connection_func = autodetect.build_sender_function(process_settings["live"])
+def create(event_type, event_data, settings=None):
+    connection_func = autodetect.build_sender_function(settings["live"])
     logging.debug(f'Creating raw event of type "{event_type}": {event_data}')
     format_and_send(event_type, event_data, connection_func=connection_func)
 

@@ -64,4 +64,4 @@ if __name__ == "__main__":
         if not line.strip():
             continue
 
-        annotation.create({"message": line}, process_settings=settings)
+        annotation.create({"message": line}, settings=settings)

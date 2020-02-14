@@ -11,8 +11,8 @@ from live_client.utils import logging
 __all__ = ["make_request", "request_with_timeout"]
 
 
-def make_request(url, process_settings, timeout=None, max_retries=0):
-    live_settings = process_settings["live"]
+def make_request(url, settings, timeout=None, max_retries=0):
+    live_settings = settings["live"]
 
     if "session" not in live_settings:
         live_settings.update(session=build_session(live_settings))

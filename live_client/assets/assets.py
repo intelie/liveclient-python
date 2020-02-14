@@ -20,8 +20,8 @@ __all__ = [
 ALL_ASSET_TYPES = ["rig", "crew", "pump"]
 
 
-def list_assets(process_settings, asset_type=None):
-    live_settings = process_settings["live"]
+def list_assets(settings, asset_type=None):
+    live_settings = settings["live"]
     url = live_settings["url"]
     data = []
 
@@ -37,7 +37,7 @@ def list_assets(process_settings, asset_type=None):
     for atype in chosen_asset_types:
         asset_url = f"{url}/services/plugin-liverig/assets/{atype}"
         try:
-            response_data = http.request_with_timeout(asset_url, process_settings)
+            response_data = http.request_with_timeout(asset_url, settings)
             if response_data is not None:
                 for asset in response_data:
                     asset["asset_type"] = atype
@@ -48,19 +48,19 @@ def list_assets(process_settings, asset_type=None):
     return data
 
 
-def fetch_asset_settings(process_settings, asset_id, asset_type="rig"):
-    live_settings = process_settings["live"]
+def fetch_asset_settings(settings, asset_id, asset_type="rig"):
+    live_settings = settings["live"]
     url = live_settings["url"]
     asset_url = f"{url}/services/plugin-liverig/assets/{asset_type}/{asset_id}/normalizer"
-    return http.request_with_timeout(asset_url, process_settings)
+    return http.request_with_timeout(asset_url, settings)
 
 
-def watch_asset_settings(process_settings, asset_id, asset_type="rig"):
-    initial_config = fetch_asset_settings(process_settings, asset_id, asset_type=asset_type)
+def watch_asset_settings(settings, asset_id, asset_type="rig"):
+    initial_config = fetch_asset_settings(settings, asset_id, asset_type=asset_type)
 
     asset_query_template = "__asset event:(normalizer|delete) type:{} id:{}"
     asset_query = asset_query_template.format(asset_type, asset_id)
-    results_process, results_queue = query.run(process_settings, asset_query, realtime=True)
+    results_process, results_queue = query.run(settings, asset_query, realtime=True)
 
     results_queue.put({"config": initial_config})
     return _settings_update_handler(results_queue)
@@ -76,8 +76,8 @@ def _settings_update_handler(events_queue):
     return settings_queue
 
 
-def run_analysis(process_settings, **kwargs):
-    live_settings = process_settings["live"]
+def run_analysis(settings, **kwargs):
+    live_settings = settings["live"]
     url = live_settings["url"]
 
     qs_data = {
@@ -94,10 +94,10 @@ def run_analysis(process_settings, **kwargs):
     params = urllib.parse.urlencode(qs_data, doseq=True)
     analysis_url = f"{url}/services/plugin-liverig-vis/auto-analysis/analyse?{params}"
 
-    return http.request_with_timeout(analysis_url, process_settings)
+    return http.request_with_timeout(analysis_url, settings)
 
 
-def analyse_and_annotate(process_settings, **kwargs):
-    analysis = run_analysis(process_settings, **kwargs)
+def analyse_and_annotate(settings, **kwargs):
+    analysis = run_analysis(settings, **kwargs)
     analysis.update(__src="auto-analysis", uid=str(uuid.uuid4()), createdAt=get_timestamp())
-    return annotation.create(analysis, process_settings=process_settings)
+    return annotation.create(analysis, settings=settings)

@@ -25,10 +25,10 @@ __all__ = [
 ]
 
 
-def join_messenger(process_settings):
-    connection_func = build_sender_function(process_settings["live"])
+def join_messenger(settings):
+    connection_func = build_sender_function(settings["live"])
 
-    bot_data = process_settings["output"]["author"]
+    bot_data = settings["output"]["author"]
     control_data = {
         "broadcast": True,
         "__skipstorage": True,
@@ -40,20 +40,16 @@ def join_messenger(process_settings):
     connection_func(event)
 
 
-def add_to_room(process_settings, room_id, sender):
-    return add_or_remove_from_room(
-        process_settings, room_id, sender, action=CONTROL_ACTIONS.ADD_USER
-    )
+def add_to_room(settings, room_id, sender):
+    return add_or_remove_from_room(settings, room_id, sender, action=CONTROL_ACTIONS.ADD_USER)
 
 
-def remove_from_room(process_settings, room_id, sender):
-    return add_or_remove_from_room(
-        room_id, sender, process_settings, action=CONTROL_ACTIONS.REMOVE_USER
-    )
+def remove_from_room(settings, room_id, sender):
+    return add_or_remove_from_room(room_id, sender, settings, action=CONTROL_ACTIONS.REMOVE_USER)
 
 
-def add_or_remove_from_room(process_settings, room_id, sender, action):
-    connection_func = build_sender_function(process_settings["live"])
+def add_or_remove_from_room(settings, room_id, sender, action):
+    connection_func = build_sender_function(settings["live"])
 
     control_data = {
         "action": "room_users_updated",
@@ -63,7 +59,7 @@ def add_or_remove_from_room(process_settings, room_id, sender, action):
         "room": {"id": room_id},
     }
 
-    bot_data = process_settings["output"]["author"]
+    bot_data = settings["output"]["author"]
 
     if action == CONTROL_ACTIONS.ADD_USER:
         control_key = "addedOrUpdatedUsers"
@@ -88,23 +84,23 @@ def send_message(message, **kwargs):
         maybe_send_chat_message(message, **kwargs)
 
 
-def maybe_send_message_event(message, timestamp, process_settings, **kwargs):
-    output_settings = process_settings["output"]
+def maybe_send_message_event(message, timestamp, settings, **kwargs):
+    output_settings = settings["output"]
     message_event = output_settings.get("message_event", {})
     event_type = message_event.get("event_type")
     messages_mnemonic = message_event.get("mnemonic")
 
     if event_type and messages_mnemonic:
-        connection_func = build_sender_function(process_settings["live"])
+        connection_func = build_sender_function(settings["live"])
         event = {"timestamp": timestamp, messages_mnemonic: {"value": message}}
         logging.debug("Sending message event '{}' for '{}'".format(event, event_type))
         raw.format_and_send(event_type, event, connection_func=connection_func)
 
 
-def maybe_send_chat_message(message, process_settings, **kwargs):
+def maybe_send_chat_message(message, settings, **kwargs):
     author_name = kwargs.get("author_name", None)
 
-    output_settings = process_settings["output"]
+    output_settings = settings["output"]
     author = output_settings.get("author")
     room = kwargs.get("room", output_settings.get("room"))
 
@@ -117,7 +113,7 @@ def maybe_send_chat_message(message, process_settings, **kwargs):
         )
 
     else:
-        connection_func = build_sender_function(process_settings["live"])
+        connection_func = build_sender_function(settings["live"])
 
         if author_name:
             author.update(name=author_name)

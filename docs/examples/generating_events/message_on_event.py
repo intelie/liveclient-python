@@ -58,7 +58,7 @@ if __name__ == "__main__":
         for item in content:
             message = template.format(item["expression"])
             print(message)
-            messenger.send_message(message, timestamp=item["timestamp"], process_settings=settings)
+            messenger.send_message(message, timestamp=item["timestamp"], settings=settings)
 
         return
 

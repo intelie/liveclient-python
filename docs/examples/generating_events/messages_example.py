@@ -53,4 +53,4 @@ if __name__ == "__main__":
         if not line.strip():
             continue
 
-        messenger.send_message(line, process_settings=settings)
+        messenger.send_message(line, settings=settings)

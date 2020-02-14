@@ -9,9 +9,9 @@ from .constants import DEFAULT_ANNOTATION_DURATION
 __all__ = ["create", "format_and_send"]
 
 
-def create(annotation_data, process_settings=None, room=None):
-    output_settings = process_settings["output"]
-    connection_func = autodetect.build_sender_function(process_settings["live"])
+def create(annotation_data, settings=None, room=None):
+    output_settings = settings["output"]
+    connection_func = autodetect.build_sender_function(settings["live"])
 
     if room is None:
         room = output_settings["room"]
