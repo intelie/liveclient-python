@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-__all__ = ['setup']
+__all__ = ["setup"]
 
 
 def read_file(filename):
@@ -11,32 +11,32 @@ def read_file(filename):
     try:
         return open(filepath).read()
     except IOError:
-        return ''
+        return ""
 
 
 def get_readme():
     """Return the README file contents. Supports text,rst, and markdown"""
-    for name in ('README', 'README.rst', 'README.md'):
+    for name in ("README", "README.rst", "README.md"):
         if os.path.exists(name):
             return read_file(name)
-    return ''
+    return ""
 
 
 def install_requires():
-    requirements = read_file('requirements.txt')
+    requirements = read_file("requirements.txt")
     return requirements
 
 
 setup(
-    name='live_client',
-    version='0.0.1',
-    description='Client libraries to connect with the Intelie LIVE platform',
+    name="live_client",
+    version="0.1.0",
+    description="Client libraries to connect with the Intelie LIVE platform",
     long_description=get_readme(),
     packages=find_packages(),
-    url='https://github.com/intelie/liveclient-python',
-    author='Vitor Mazzi',
-    author_email='vitor.mazzi@intelie.com.br',
-    license='Apache',
+    url="https://github.com/intelie/liveclient-python",
+    author="Vitor Mazzi",
+    author_email="vitor.mazzi@intelie.com.br",
+    license="Apache",
     install_requires=install_requires(),
-    zip_safe=False
+    zip_safe=False,
 )
