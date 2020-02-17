@@ -16,20 +16,24 @@ from live_client.utils import logging
 __all__ = ["on_event", "run", "start", "watch"]
 
 
-def start(process_settings, statement, realtime=False, span=None, timeout=None, max_retries=0):
-    live_settings = process_settings["live"]
-
-    if "session" not in process_settings:
-        process_settings.update(session=build_session(live_settings))
-
+def start(statement, settings, timeout=None, **kwargs):
+    live_settings = settings["live"]
     live_url = live_settings["url"]
-    session = process_settings["session"]
+
+    if "session" not in settings:
+        settings.update(session=build_session(live_settings))
+    session = settings["session"]
+
+    realtime = kwargs.get("realtime", False)
+    span = kwargs.get("span", None)
+    preload = kwargs.get("preload", False)
+    max_retries = kwargs.get("max_retries", 0)
 
     api_url = f"{live_url}/rest/query"
     query_payload = [
         {
             "provider": "pipes",
-            "preload": False,
+            "preload": preload,
             "span": span,
             "follow": realtime,
             "expression": statement,
@@ -74,18 +78,11 @@ def watch(url, channels, output_queue):
     loop.run_until_complete(read_results(url, channels, output_queue))
 
 
-def run(process_settings, statement, realtime=False, span=None, timeout=None, max_retries=0):
+def run(statement, settings, timeout=None, **kwargs):
     with start_action(action_type="query.run", statement=statement):
-        live_settings = process_settings["live"]
+        live_settings = settings["live"]
 
-        channels = start(
-            process_settings,
-            statement,
-            realtime=realtime,
-            span=span,
-            timeout=timeout,
-            max_retries=max_retries,
-        )
+        channels = start(statement, settings, timeout=timeout, **kwargs)
 
         logging.debug(f"Results channel is {channels}")
 
@@ -99,11 +96,11 @@ def run(process_settings, statement, realtime=False, span=None, timeout=None, ma
     return process, events_queue
 
 
-def on_event(statement, process_settings, realtime=True, span=None, timeout=None, max_retries=None):
+def on_event(statement, settings, realtime=True, timeout=None, **query_args):
     def handler_decorator(f):
         def wrapper(*args, **kwargs):
             results_process, results_queue = run(
-                process_settings, statement, realtime=True, timeout=timeout, max_retries=max_retries
+                statement, settings, realtime=realtime, timeout=timeout, **query_args
             )
             last_result = None
 
@@ -111,11 +108,13 @@ def on_event(statement, process_settings, realtime=True, span=None, timeout=None
                 try:
                     event = results_queue.get(timeout=timeout)
                 except queue.Empty:
-                    logging.exception()
+                    logging.exception(f"No results after {timeout} seconds")
                     break
 
                 event_type = event.get("data", {}).get("type")
-                if event_type != EVENT_TYPE_EVENT:
+                if event_type == EVENT_TYPE_DESTROY:
+                    break
+                elif event_type != EVENT_TYPE_EVENT:
                     continue
 
                 last_result = f(event, *args, **kwargs)

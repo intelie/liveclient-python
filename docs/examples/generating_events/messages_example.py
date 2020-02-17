@@ -1,22 +1,14 @@
-# Live Client
-
-A toolset to interact with the Intelie LIVE Platform
-
-
-## Usage examples
-
-```python
+# -*- coding: utf-8 -*-
 import sys
 import argparse
 
-from live_client.query import on_event
 from live_client.events import messenger
 
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(
-        description="Connects to a live instance and watches every query which is started",
-        epilog="For each query, sends a message to one of the messenger's rooms"
+        description="Send messages to one of the messenger rooms on Intelie Live",
+        epilog="Reads from standard input and sends a message for every line read",
     )
     parser.add_argument("--live_url", dest="live_url", required=True, help="The url Intelie Live")
     parser.add_argument("--username", dest="username", required=True, help="Live username")
@@ -48,34 +40,17 @@ def build_settings(args):
 
 if __name__ == "__main__":
     """
-    Connects to a live instance and watches every query which is started
-    For each query, sends a message to one of the messenger's rooms
+    Send messages to one of the messenger rooms on Intelie Live
+    Reads from standard input and sends a message for every line read
     """
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
 
-    example_query = "__queries action:start => expression, description"
-    span = f"last 60 seconds"
+    messenger.join_messenger(settings)
 
-    @on_event(example_query, settings, span=span, timeout=120)
-    def handle_events(event, settings=None):
-        event_data = event.get("data", {})
-        content = event_data.get("content", {})
-        template = "New query: '{}'"
-        for item in content:
-            message = template.format(item["expression"])
-            print(message)
-            messenger.send_message(
-                message, timestamp=item["timestamp"], process_settings=settings
-            )
+    print("\vAll messages written here will be sent to Live. Press CTRL+D to exit.\n")
+    for line in sys.stdin:
+        if not line.strip():
+            continue
 
-        return
-
-    handle_events(settings=settings)
-```
-
-More examples can be found on the folder `docs/examples`.
-
-## Development
-
-This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
+        messenger.send_message(line, settings=settings)

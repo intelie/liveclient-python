@@ -1,11 +1,4 @@
-# Live Client
-
-A toolset to interact with the Intelie LIVE Platform
-
-
-## Usage examples
-
-```python
+# -*- coding: utf-8 -*-
 import sys
 import argparse
 
@@ -16,7 +9,7 @@ from live_client.events import messenger
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         description="Connects to a live instance and watches every query which is started",
-        epilog="For each query, sends a message to one of the messenger's rooms"
+        epilog="For each query, sends a message to one of the messenger's rooms",
     )
     parser.add_argument("--live_url", dest="live_url", required=True, help="The url Intelie Live")
     parser.add_argument("--username", dest="username", required=True, help="Live username")
@@ -58,24 +51,16 @@ if __name__ == "__main__":
     span = f"last 60 seconds"
 
     @on_event(example_query, settings, span=span, timeout=120)
-    def handle_events(event, settings=None):
+    def handle_events(event):
         event_data = event.get("data", {})
         content = event_data.get("content", {})
         template = "New query: '{}'"
         for item in content:
             message = template.format(item["expression"])
             print(message)
-            messenger.send_message(
-                message, timestamp=item["timestamp"], process_settings=settings
-            )
+            messenger.send_message(message, timestamp=item["timestamp"], settings=settings)
 
         return
 
-    handle_events(settings=settings)
-```
-
-More examples can be found on the folder `docs/examples`.
-
-## Development
-
-This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
+    print("\vWaiting for new events. Press CTRL+C to exit.\n")
+    handle_events()

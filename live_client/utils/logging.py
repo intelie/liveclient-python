@@ -3,13 +3,14 @@ import sys
 from functools import partial
 import logging as python_logging
 from http.client import HTTPConnection
+from pprint import pprint
 
 from eliot import Message, write_traceback, add_destinations
 from eliot.stdlib import EliotHandler
 
 from live_client.connection.rest_input import async_event_sender
 
-__all__ = ["debug", "info", "warn", "error", "exception", "log_to_live"]
+__all__ = ["debug", "info", "warn", "error", "exception", "log_to_live", "log_to_stdout"]
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARN", "ERROR", "EXCEPTION"]
 
@@ -33,11 +34,17 @@ warn = partial(log_message, severity="warn")
 error = partial(log_message, severity="error")
 
 
-def log_to_live(message, log_function=None, event_type=None, min_level=None):
+def log_to_live(message, log_function=None, event_type=None, min_level=default_level):
     message_severity = message.get("message_type", min_level)
     if level_is_logged(message_severity, min_level=min_level):
         message.update(__type=event_type)
         log_function(message)
+
+
+def log_to_stdout(message, min_level=default_level):
+    message_severity = message.get("message_type", min_level)
+    if level_is_logged(message_severity, min_level=min_level):
+        pprint(message)
 
 
 def level_is_logged(message_severity, min_level=None):
