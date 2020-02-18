@@ -4,7 +4,7 @@ import argparse
 import eliot
 
 from live_client.utils.logging import log_to_stdout
-from live_client.resources.plugins import list_features
+from live_client.resources.plugins import list_plugins
 
 
 def parse_arguments(argv):
@@ -29,18 +29,16 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
 
-    features = list_features(settings)
-    if not features:
+    plugins = list_plugins(settings)
+    if not plugins:
         # Error, check the logs
         print("Error. Please check the following log:")
         eliot.add_destinations(log_to_stdout)
 
     else:
-        for module, status in features.items():
-            messages = status.get("messages")
-            availability = status.get("is_available") and "AVAILABLE" or "UNAVAILABLE"
-            print(f"\v{module} is {availability}:")
-            for item in messages:
-                print(f"- {item}")
+        plugin_count = len(plugins)
+        print(f"There are {plugin_count} enabled plugins {args.live_url}")
 
-        print("\v")
+        template = "- {name} version {version}"
+        for item in plugins:
+            print(template.format(**item))
