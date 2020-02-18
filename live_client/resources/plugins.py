@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
-from live_client import REQUIRED_PLUGINS
+from live_client import REQUIREMENTS
 from live_client.utils import logging
 
 from .base import fetch_resource
@@ -60,7 +60,8 @@ def list_features(settings):
 
     features_status = {}
     if available_plugins:
-        for module, plugins in REQUIRED_PLUGINS.items():
+        for module, requirements in REQUIREMENTS.items():
+            plugins = requirements.get("plugins", [])
             is_available = True
             messages = []
             for plugin in plugins:
