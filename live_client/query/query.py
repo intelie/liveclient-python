@@ -51,7 +51,7 @@ def start(statement, settings, timeout=None, **kwargs):
 
 
 async def read_results(url, channels, output_queue):
-    setproctitle("DDA: cometd client for channels {}".format(channels))
+    setproctitle("live-client: cometd client for channels {}".format(channels))
 
     with ensure_timeout(3.05):
         with start_action(action_type="query.read_results", url=url, channels=channels):
