@@ -106,10 +106,7 @@ def maybe_send_chat_message(message, settings, **kwargs):
 
     if (room is None) or (author is None):
         logging.warn(
-            "Cannot send message, room ({}) and/or author ({}) missing. Message is '{}'",
-            room,
-            author,
-            message,
+            f"Cannot send message, room ({room}) and/or author ({author}) missing. Message is '{message}'"
         )
 
     else:
