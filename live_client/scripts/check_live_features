@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import sys
+import os
 import re
 import argparse
+import json
 import eliot
 
 from live_client import REQUIREMENTS
@@ -19,15 +21,31 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         description="Validates the requirements for available features"
     )
-    parser.add_argument("--live_url", dest="live_url", required=True, help="The url Intelie Live")
-    parser.add_argument("--username", dest="username", required=True, help="Live username")
-    parser.add_argument("--password", dest="password", required=True, help="Live password")
+    parser.add_argument("--settings", dest="settings_file", help="A settings file")
+    parser.add_argument("--live_url", dest="live_url", help="The url Intelie Live")
+    parser.add_argument("--username", dest="username", help="Live username")
+    parser.add_argument("--password", dest="password", help="Live password")
 
-    return parser.parse_args(argv[1:])
+    args = parser.parse_args(argv[1:])
+    if args.settings_file:
+        if not os.path.isfile(args.settings_file):
+            parser.error(f"Invalid value for --settings ({args.settings_file}).")
+    elif not all([args.live_url, args.username, args.password]):
+        parser.error("Either --settings or --live_url, --username and --password are required")
+
+    return args
 
 
 def build_settings(args):
-    return {"live": {"url": args.live_url, "username": args.username, "password": args.password}}
+    if args.settings_file:
+        with open(args.settings_file, "r") as fd:
+            settings = json.load(fd)
+    else:
+        settings = {
+            "live": {"url": args.live_url, "username": args.username, "password": args.password}
+        }
+
+    return settings
 
 
 def list_features(settings):
@@ -135,6 +153,7 @@ if __name__ == "__main__":
         eliot.add_destinations(logging.log_to_stdout)
 
     else:
+        print(f"\v{TextColors.BOLD}Status for {settings['live']['url']}{TextColors.ENDC}")
         for module, status in features.items():
             messages = status.get("messages")
             is_available = status.get("is_available")
