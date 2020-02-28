@@ -94,7 +94,7 @@ def maybe_send_message_event(message, timestamp, settings, **kwargs):
         connection_func = build_sender_function(settings["live"])
         event = {"timestamp": timestamp, messages_mnemonic: {"value": message}}
         logging.debug("Sending message event '{}' for '{}'".format(event, event_type))
-        raw.format_and_send(event_type, event, connection_func=connection_func)
+        raw.format_and_send(event, event_type, connection_func=connection_func)
 
 
 def maybe_send_chat_message(message, settings, **kwargs):
