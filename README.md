@@ -79,3 +79,8 @@ More examples can be found on the folder `docs/examples`.
 ## Development
 
 This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
+
+## Running the Tests
+
+If you installled `dev-requirements.txt` you already have `pytest` installed.
+Then just `cd` to the `tests` directory and run `pytest`.
