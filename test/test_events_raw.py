@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from testbase import *
 from live_client.events import raw
 
