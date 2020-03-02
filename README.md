@@ -5,7 +5,7 @@ A toolset to interact with the Intelie LIVE Platform
 
 ## Usage examples
 
-```python
+```
 import sys
 import argparse
 
@@ -79,3 +79,16 @@ More examples can be found on the folder `docs/examples`.
 ## Development
 
 This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
+
+## Publishing to pypi
+
+```
+# Build the packages
+$ python setup.py egg_info sdist
+
+# Validate the package
+$ twine check dist/*
+
+# Upload the package
+$ twine upload dist/*
+```

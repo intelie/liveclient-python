@@ -32,6 +32,7 @@ setup(
     version="0.5.0",
     description="Client libraries to connect with the Intelie LIVE platform",
     long_description=get_readme(),
+    long_description_content_type="text/markdown",
     packages=find_packages(),
     scripts=["live_client/scripts/check_live_features"],
     url="https://github.com/intelie/liveclient-python",
