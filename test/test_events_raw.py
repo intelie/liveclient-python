@@ -23,11 +23,14 @@ class TestCreateEvent:
     @mock.patch("live_client.utils.logging.debug", no_action)
     def test_event_sent(self):
         buffer = []
+
         def collect(event):
             nonlocal buffer
             buffer.append(event)
 
-        with mock.patch("live_client.connection.autodetect.build_sender_function", lambda _: collect):
+        with mock.patch(
+            "live_client.connection.autodetect.build_sender_function", lambda _: collect
+        ):
             event_type = "__event_type__"
             event_data = {"data": {}}
             settings = {"live": "__live__"}
