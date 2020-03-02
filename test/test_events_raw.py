@@ -1,10 +1,41 @@
+from unittest import mock
+
 from testbase import *
+
 from live_client.events import raw
 
 
 DEFAULT_EVENT = {}
 A_TIMESTAMP = 1582927835001
 DEFAULT_TIMESTAMP = 0
+
+
+class TestCreateEvent:
+    @mock.patch("live_client.connection.autodetect.build_sender_function", lambda _: no_action)
+    @mock.patch("live_client.utils.logging.debug")
+    def test_message_logged(self, debug_mock):
+        event_type = "__event_type__"
+        event_data = {}
+        settings = {"live": "__live__"}
+        raw.create(event_type, event_data, settings)
+        debug_mock.assert_called_with(f'Creating raw event of type "{event_type}": {event_data}')
+
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    def test_event_sent(self):
+        buffer = []
+        def collect(event):
+            nonlocal buffer
+            buffer.append(event)
+
+        with mock.patch("live_client.connection.autodetect.build_sender_function", lambda _: collect):
+            event_type = "__event_type__"
+            event_data = {"data": {}}
+            settings = {"live": "__live__"}
+
+            raw.create(event_type, event_data, settings)
+
+            assert len(buffer) > 0
+            assert buffer[0]["data"] is event_data["data"]
 
 
 class TestFormatEvent:
