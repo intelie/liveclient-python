@@ -44,6 +44,7 @@ def send_event(event, live_settings=None):
     except RequestException as e:
         logging.exception("ERROR: Cannot send event, {}<{}>".format(e, type(e)))
         logging.exception("Event data: {}".format(event))
+        raise
 
 
 def async_send(queue, live_settings):
