@@ -29,7 +29,7 @@ def install_requires():
 
 setup(
     name="live_client",
-    version="0.1.0",
+    version="0.5.0",
     description="Client libraries to connect with the Intelie LIVE platform",
     long_description=get_readme(),
     packages=find_packages(),
