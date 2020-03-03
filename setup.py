@@ -29,7 +29,7 @@ def install_requires():
 
 setup(
     name="live_client",
-    version="0.5.0",
+    version="0.5.1",
     description="Client libraries to connect with the Intelie LIVE platform",
     long_description=get_readme(),
     long_description_content_type="text/markdown",
@@ -40,5 +40,14 @@ setup(
     author_email="vitor.mazzi@intelie.com.br",
     license="Apache",
     install_requires=install_requires(),
-    zip_safe=False,
+    zip_safe=True,
+    python_requires=">=3.6",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Development Status :: 4 - Beta",
+        "Topic :: Scientific/Engineering",
+        "Topic :: System :: Monitoring",
+    ],
 )
