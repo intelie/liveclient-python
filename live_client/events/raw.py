@@ -14,11 +14,11 @@ def create(event_type, event_data, settings):
 
 def format_and_send(event_data, event_type, connection_func):
     timestamp = event_data.pop("timestamp", get_timestamp())
-    event = format_event(event_data, timestamp, event_type)
+    event = format_event(event_data, event_type, timestamp)
     connection_func(event)
 
 
-def format_event(event_data, timestamp, event_type):
+def format_event(event_data, event_type, timestamp):
     event_data = event_data.copy()
     event_data["__type"] = event_type
     event_data["liverig__index__timestamp"] = timestamp

@@ -36,7 +36,7 @@ def join_messenger(settings):
         "user": bot_data,
     }
 
-    event = format_event(EVENT_TYPES["control"], get_timestamp(), control_data)
+    event = format_event(control_data, EVENT_TYPES["control"], get_timestamp())
     connection_func(event)
 
 
@@ -69,7 +69,7 @@ def add_or_remove_from_room(settings, room_id, sender, action):
 
     control_data[control_key].append(bot_data)
 
-    event = format_event(EVENT_TYPES["control"], get_timestamp(), control_data)
+    event = format_event(control_data, EVENT_TYPES["control"], get_timestamp())
     connection_func(event)
 
 
@@ -134,10 +134,10 @@ def format_message_event(timestamp, message, settings):
 
     message_data = {"message": message, "room": room_data, "author": author_data}
 
-    return format_event(EVENT_TYPES["message"], timestamp, message_data)
+    return format_event(message_data, EVENT_TYPES["message"], timestamp)
 
 
-def format_event(event_type, timestamp, event_data):
+def format_event(event_data, event_type, timestamp):
     base_event = {"__type": event_type, "uid": str(uuid.uuid4()), "createdAt": timestamp}
     base_event.update(event_data)
     return base_event
