@@ -49,13 +49,13 @@ class TestFormatEvent:
 
     def test_formatted_event_has_event_type(self):
         event_type = "__event_type__"
-        event = raw.format_event(DEFAULT_EVENT, "_", event_type)
+        event = raw.format_event(DEFAULT_EVENT, event_type, "_")
         assigned_type = event.get("__type")
         assert assigned_type is not None and assigned_type == event_type
 
     def test_formatted_event_has_timestamp(self):
         timestamp = now_timestamp()
-        event = raw.format_event(DEFAULT_EVENT, timestamp, "_")
+        event = raw.format_event(DEFAULT_EVENT, "_", timestamp)
         assigned_timestamp = event.get("liverig__index__timestamp")
         assert assigned_timestamp is not None and assigned_timestamp == timestamp
 
