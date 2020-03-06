@@ -5,7 +5,7 @@ A toolset to interact with the Intelie LIVE Platform
 
 ## Usage examples
 
-```python
+```
 import sys
 import argparse
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     span = f"last 60 seconds"
 
     @on_event(example_query, settings, span=span, timeout=120)
-    def handle_events(event, settings=None):
+    def handle_events(event):
         event_data = event.get("data", {})
         content = event_data.get("content", {})
         template = "New query: '{}'"
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
         return
 
-    handle_events(settings=settings)
+    handle_events()
 ```
 
 More examples can be found on the folder `docs/examples`.
@@ -84,3 +84,18 @@ This project uses [black](https://github.com/psf/black) and [pre-commit](https:/
 
 If you installled `dev-requirements.txt` you already have `pytest` installed.
 Then just `cd` to the `tests` directory and run `pytest`.
+
+## Publishing to pypi
+
+```
+# Build the packages
+$ python setup.py egg_info sdist
+
+# Validate the package
+$ twine check dist/*
+
+# Upload the package
+$ twine upload dist/*
+```
+
+

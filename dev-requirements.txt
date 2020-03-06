@@ -1,3 +1,8 @@
 pytest==5.3.5
 pre-commit==2.0.1
 black
+
+# packaging
+setuptools>=38.6.0
+wheel>=0.31.0
+twine>=1.11.0
