@@ -98,42 +98,33 @@ def maybe_send_message_event(message, timestamp, settings, **kwargs):
 
 
 def maybe_send_chat_message(message, settings, **kwargs):
-    author_name = kwargs.get("author_name", None)
-
     output_settings = settings["output"]
     author = output_settings.get("author")
+    author["name"] = kwargs.get("author_name") or author.get("name")
     room = kwargs.get("room", output_settings.get("room"))
 
-    if (room is None) or (author is None):
+    shall_send_message = (room is not None) and (author is not None)
+
+    if not shall_send_message:
         logging.warn(
             f"Cannot send message, room ({room}) and/or author ({author}) missing. Message is '{message}'"
         )
+        return False
 
-    else:
-        connection_func = build_sender_function(settings["live"])
-
-        if author_name:
-            author.update(name=author_name)
-
-        output_settings.update(room=room, author=author)
-        logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
-        format_and_send(message, output_settings, connection_func=connection_func)
+    connection_func = build_sender_function(settings["live"])
+    logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
+    format_and_send(message, room, author, connection_func=connection_func)
+    return True
 
 
-def format_and_send(message, settings, connection_func=None):
-    timestamp = get_timestamp()
-    event = format_message_event(timestamp, message, settings)
-
+def format_and_send(message, room, author, connection_func):
+    event = format_message_event(message, room, author, timestamp=get_timestamp())
     logging.debug("Sending message {}".format(event))
     connection_func(event)
 
 
-def format_message_event(timestamp, message, settings):
-    room_data = settings["room"]
-    author_data = settings["author"]
-
-    message_data = {"message": message, "room": room_data, "author": author_data}
-
+def format_message_event(message, room, author, timestamp):
+    message_data = {"message": message, "room": room, "author": author}
     return format_event(message_data, EVENT_TYPES["message"], timestamp)
 
 
