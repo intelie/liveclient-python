@@ -6,7 +6,21 @@ from live_client.events import messenger
 from predicates import *
 
 
+class TestFormatMessageEvent:
+    def test_event_configured(self):
+        message = "__message__"
+        room = "__room__"
+        author = {}
+        timestamp = now_timestamp()
+
+        base_message = {"message": message, "room": room, "author": author}
+        event = messenger.format_message_event(message, room, author, timestamp)
+
+        assert dict_contains(event, base_message) and event.get("createdAt") == timestamp
+
+
 class TestFormatEvent:
+    # [ECS]: Do we really need to create a new dict? <<<<<
     def test_formatted_event_is_not_the_original(self):
         event = {}
         formatted_event = messenger.format_event(event, "__type__", 0)
