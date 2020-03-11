@@ -6,6 +6,35 @@ from live_client.events import messenger
 from predicates import *
 
 
+class TestFormatAndSend:
+    def mock_connection_func(self, event):
+        self.event_data = event
+
+    @mock.patch("live_client.utils.logging.debug")
+    def test_message_logged(self, debug_mock):
+        message = "_"
+        room = "_"
+        author = {}
+        connection_func = self.mock_connection_func
+
+        messenger.format_and_send(message, room, author, connection_func)
+        debug_mock.assert_called_with("Sending message {}".format(self.event_data))
+
+    def test_connection_func_called(self):
+        message = "__message__"
+        room = "__room__"
+        author = {}
+        messenger.format_and_send(message, room, author, self.mock_connection_func)
+        assert (
+            self.event_data["message"] == message
+            and self.event_data["room"] == room
+            and self.event_data["author"] == author
+            and self.event_data.get("createdAt") is not None
+            and self.event_data.get("uid") is not None
+            and self.event_data.get("__type") is not None
+        )
+
+
 class TestFormatMessageEvent:
     def test_event_configured(self):
         message = "__message__"
