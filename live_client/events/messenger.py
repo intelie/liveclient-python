@@ -100,7 +100,6 @@ def maybe_send_message_event(message, timestamp, settings, **kwargs):
 def maybe_send_chat_message(message, settings, **kwargs):
     output_settings = settings["output"]
     author = output_settings.get("author")
-    author["name"] = kwargs.get("author_name") or author.get("name")
     room = kwargs.get("room", output_settings.get("room"))
 
     shall_send_message = (room is not None) and (author is not None)
@@ -111,6 +110,7 @@ def maybe_send_chat_message(message, settings, **kwargs):
         )
         return False
 
+    author["name"] = kwargs.get("author_name") or author.get("name")
     connection_func = build_sender_function(settings["live"])
     logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
     format_and_send(message, room, author, connection_func=connection_func)
