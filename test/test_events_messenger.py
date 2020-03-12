@@ -6,6 +6,63 @@ from live_client.events import messenger
 from predicates import *
 
 
+class TestMaybeSendChatMessage:
+    # If settings["output"] is not a dictionary -> Throw exception
+    # If settings["output"]["author"] is not a dictionary -> Throw exception
+    @mock.patch("live_client.connection.autodetect.build_sender_function", lambda _: no_action)
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_invalid_settings_throws(self):
+        # Must fail if "output" attribute missing
+        settings = {}
+        assert raises(KeyError, messenger.maybe_send_chat_message, "_", settings)
+
+    # Message shall be sent if:
+    #   (1) author is configured in settings and
+    #   (2) room is configured either in kwargs or in settings
+    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: Collector())
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_message_should_be_sent(self):
+        settings = {"output": {"author": {}, "room": "__room__"}, "live": {}}
+
+        message_sent = messenger.maybe_send_chat_message("_", settings)
+        assert message_sent
+
+    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: Collector())
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_message_not_sent_if_no_room(self):
+        settings = {"output": {"author": {}}, "live": {}}
+        message_sent_1 = messenger.maybe_send_chat_message("_", settings)
+        assert not message_sent_1
+
+        settings["output"]["room"] = None
+        message_sent_2 = messenger.maybe_send_chat_message("_", settings)
+        assert not message_sent_2
+
+    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: Collector())
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_message_not_sent_if_no_author(self):
+        settings = {"output": {"room": "__room__"}, "live": {}}
+        message_sent_1 = messenger.maybe_send_chat_message("_", settings)
+        assert not message_sent_1
+
+        settings["output"]["author"] = None
+        message_sent_2 = messenger.maybe_send_chat_message("_", settings)
+        assert not message_sent_2
+
+    # If kwargs contains "author_name" then "author" name shall be updated.
+    # If message can be sent:
+    #   log success message (debug)
+    #   call format_and_send
+    #   return True
+    # Else:
+    #   log error message (warn)
+    #   return False
+
+
 class TestFormatAndSend:
     def mock_connection_func(self, event):
         self.event_data = event
