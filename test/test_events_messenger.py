@@ -6,6 +6,15 @@ from live_client.events import messenger
 from predicates import *
 
 
+def gen_settings(**kwargs):
+    default_settings = {
+        "output": {"author": {"name": "__default_name__"}, "room": "__room__"},
+        "live": {},
+    }
+    default_settings.update(kwargs)
+    return default_settings
+
+
 class TestMaybeSendChatMessage:
     # If settings["output"] is not a dictionary -> Throw exception
     # If settings["output"]["author"] is not a dictionary -> Throw exception
@@ -29,38 +38,79 @@ class TestMaybeSendChatMessage:
         message_sent = messenger.maybe_send_chat_message("_", settings)
         assert message_sent
 
-    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: Collector())
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
     def test_message_not_sent_if_no_room(self):
         settings = {"output": {"author": {}}, "live": {}}
-        message_sent_1 = messenger.maybe_send_chat_message("_", settings)
-        assert not message_sent_1
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message_sent_1 = messenger.maybe_send_chat_message("_", settings)
+            assert not message_sent_1 and collector.is_empty()
 
         settings["output"]["room"] = None
-        message_sent_2 = messenger.maybe_send_chat_message("_", settings)
-        assert not message_sent_2
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message_sent_2 = messenger.maybe_send_chat_message("_", settings)
+            assert not message_sent_2 and collector.is_empty()
 
-    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: Collector())
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
     def test_message_not_sent_if_no_author(self):
         settings = {"output": {"room": "__room__"}, "live": {}}
-        message_sent_1 = messenger.maybe_send_chat_message("_", settings)
-        assert not message_sent_1
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message_sent_1 = messenger.maybe_send_chat_message("_", settings)
+            assert not message_sent_1 and collector.is_empty()
 
         settings["output"]["author"] = None
-        message_sent_2 = messenger.maybe_send_chat_message("_", settings)
-        assert not message_sent_2
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message_sent_2 = messenger.maybe_send_chat_message("_", settings)
+            assert not message_sent_2 and collector.is_empty()
 
     # If kwargs contains "author_name" then "author" name shall be updated.
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_author_name_updates_author(self):
+        settings = gen_settings()
+        new_author_name = "__new_author__"
+        assert settings["output"]["author"]["name"] != new_author_name
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            messenger.maybe_send_chat_message("_", settings, author_name=new_author_name)
+        assert collector.buffer[0]["author"]["name"] == new_author_name
+
     # If message can be sent:
     #   log success message (debug)
-    #   call format_and_send
+    #   call sender function
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_sender_called_on_success(self):
+        settings = gen_settings()
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            messenger.maybe_send_chat_message("_", settings)
+            assert not collector.is_empty()
+
     #   return True
+    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: no_action)
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_returns_true_on_success(self):
+        settings = gen_settings()
+        ret = messenger.maybe_send_chat_message("_", settings)
+        assert ret is True
+
     # Else:
     #   log error message (warn)
     #   return False
+    @mock.patch("live_client.events.messenger.build_sender_function", lambda _: no_action)
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    @mock.patch("live_client.utils.logging.warn", no_action)
+    def test_returns_true_on_success(self):
+        settings = gen_settings(output={})
+        ret = messenger.maybe_send_chat_message("_", settings)
+        assert ret is False
 
 
 class TestFormatAndSend:
