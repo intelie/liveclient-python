@@ -84,7 +84,7 @@ def send_message(message, **kwargs):
         maybe_send_chat_message(message, **kwargs)
 
 
-def maybe_send_message_event(message, timestamp, settings, **kwargs):
+def maybe_send_message_event(message, timestamp, settings, **kwargs): # <<<<< kwargs not used => remove !!
     output_settings = settings["output"]
     message_event = output_settings.get("message_event", {})
     event_type = message_event.get("event_type")
@@ -95,7 +95,9 @@ def maybe_send_message_event(message, timestamp, settings, **kwargs):
         event = {"timestamp": timestamp, messages_mnemonic: {"value": message}}
         logging.debug("Sending message event '{}' for '{}'".format(event, event_type))
         raw.format_and_send(event, event_type, connection_func=connection_func)
+        return True
 
+    return False
 
 def maybe_send_chat_message(message, settings, **kwargs):
     output_settings = settings["output"]
@@ -110,6 +112,7 @@ def maybe_send_chat_message(message, settings, **kwargs):
         )
         return False
 
+    # [ECS]: Author should not be altered here. It'd be better to receive it configured from the client <<<<<
     author["name"] = kwargs.get("author_name") or author.get("name")
     connection_func = build_sender_function(settings["live"])
     logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
