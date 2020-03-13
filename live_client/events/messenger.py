@@ -73,14 +73,16 @@ def add_or_remove_from_room(settings, room_id, sender, action):
     connection_func(event)
 
 
-#[ECS][FIXME]: This function may call none, only one or both functions. It is way too complex and should be eliminated
+#[ECS][FIXME]: This function may choose none, only one or both functions.
+#   Even when one of them or both are choosen neither may be called depending on internal rules.
+#   It is way too complex and should be eliminated
 #   Clients should explicitly call the version they want.
 def send_message(message, **kwargs):
     timestamp = kwargs.pop("timestamp", get_timestamp())
     message_type = kwargs.pop("message_type", None)
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.EVENT):
-        maybe_send_message_event(message, timestamp, **kwargs)
+        maybe_send_message_event(message, timestamp, kwargs.get("settings"))
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.CHAT):
         maybe_send_chat_message(message, **kwargs)
@@ -100,6 +102,7 @@ def maybe_send_message_event(message, timestamp, settings):
         return True
 
     return False
+
 
 def maybe_send_chat_message(message, settings, **kwargs):
     output_settings = settings["output"]
