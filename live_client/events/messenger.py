@@ -73,6 +73,8 @@ def add_or_remove_from_room(settings, room_id, sender, action):
     connection_func(event)
 
 
+#[ECS][FIXME]: This function may call none, only one or both functions. It is way too complex and should be eliminated
+#   Clients should explicitly call the version they want.
 def send_message(message, **kwargs):
     timestamp = kwargs.pop("timestamp", get_timestamp())
     message_type = kwargs.pop("message_type", None)
@@ -84,7 +86,7 @@ def send_message(message, **kwargs):
         maybe_send_chat_message(message, **kwargs)
 
 
-def maybe_send_message_event(message, timestamp, settings, **kwargs): # <<<<< kwargs not used => remove !!
+def maybe_send_message_event(message, timestamp, settings):
     output_settings = settings["output"]
     message_event = output_settings.get("message_event", {})
     event_type = message_event.get("event_type")
@@ -112,7 +114,7 @@ def maybe_send_chat_message(message, settings, **kwargs):
         )
         return False
 
-    # [ECS]: Author should not be altered here. It'd be better to receive it configured from the client <<<<<
+    # [ECS][FIXME]: Author should not be altered here. It'd be better to receive it configured from the client <<<<<
     author["name"] = kwargs.get("author_name") or author.get("name")
     connection_func = build_sender_function(settings["live"])
     logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
