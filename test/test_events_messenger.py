@@ -15,6 +15,35 @@ def gen_settings(**kwargs):
     return default_settings
 
 
+class TestSendMessage:
+    @mock.patch("live_client.events.messenger.maybe_send_message_event")
+    @mock.patch("live_client.events.messenger.maybe_send_chat_message")
+    def test_correct_implementation_called(self, chat_mock, event_mock):
+        def reset_mocks():
+            nonlocal event_mock, chat_mock
+            event_mock.reset_mock()
+            chat_mock.reset_mock()
+
+        # None shall be called:
+        messenger.send_message("_", message_type = "")
+        assert not event_mock.called and not chat_mock.called
+        reset_mocks()
+
+        # send event shall be called:
+        messenger.send_message("_", message_type = messenger.MESSAGE_TYPES.EVENT)
+        assert event_mock.called and not chat_mock.called
+        reset_mocks()
+
+        # send chat shall be called:
+        messenger.send_message("_", message_type = messenger.MESSAGE_TYPES.CHAT)
+        assert not event_mock.called and chat_mock.called
+        reset_mocks()
+
+        # both shall be called:
+        messenger.send_message("_", message_type = None)
+        assert event_mock.called and chat_mock.called
+
+
 class TestMaybeSendMessageEvent:
     # If settings["output"] is not a dictionary -> Throw exception
     def test_invalid_settings_throws(self):
