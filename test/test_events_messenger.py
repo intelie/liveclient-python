@@ -15,9 +15,66 @@ def gen_settings(**kwargs):
     return default_settings
 
 
+class TestMaybeSendMessageEvent:
+    # If settings["output"] is not a dictionary -> Throw exception
+    def test_invalid_settings_throws(self):
+        settings = {}
+        assert raises(KeyError, messenger.maybe_send_message_event, "_", 0, settings)
+
+    # Message shall be sent if:
+    #   1 - event_type is not None and
+    #   2 - messages_mnemonic is not None
+    # Event must follow the template: event = {"timestamp": timestamp, messages_mnemonic: {"value": message}}
+    @mock.patch("live_client.utils.logging.debug", no_action)
+    def test_message_should_be_sent(self):
+        messages_mnemonic = "__mnemonic__"
+
+        settings = gen_settings()
+        settings["output"]["message_event"] = {
+            "event_type": "__event_type__",
+            "mnemonic": messages_mnemonic,
+        }
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message = "_"
+            timestamp = get_timestamp()
+            message_sent = messenger.maybe_send_message_event(message, timestamp, settings)
+            assert message_sent
+
+            sent_event = collector[0]
+            assert sent_event.get("liverig__index__timestamp") == timestamp
+            assert sent_event.get(messages_mnemonic) is not None
+            assert sent_event.get(messages_mnemonic).get("value") == message
+
+    def test_message_not_sent_if_no_event_type(self):
+        settings = gen_settings()
+        settings["output"]["message_event"] = {
+            "mnemonic": "_",
+        }
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message = "_"
+            timestamp = get_timestamp()
+            message_sent = messenger.maybe_send_message_event(message, timestamp, settings)
+            assert not message_sent
+            assert collector.is_empty()
+
+    def test_message_not_sent_if_no_messages_mnemonic(self):
+        settings = gen_settings()
+        settings["output"]["message_event"] = {
+            "event_type": "__event_type__",
+        }
+        collector = Collector()
+        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+            message = "_"
+            timestamp = get_timestamp()
+            message_sent = messenger.maybe_send_message_event(message, timestamp, settings)
+            assert not message_sent
+            assert collector.is_empty()
+
+
 class TestMaybeSendChatMessage:
     # If settings["output"] is not a dictionary -> Throw exception
-    # If settings["output"]["author"] is not a dictionary -> Throw exception
     @mock.patch("live_client.connection.autodetect.build_sender_function", lambda _: no_action)
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
@@ -147,7 +204,7 @@ class TestFormatMessageEvent:
         message = "__message__"
         room = "__room__"
         author = {}
-        timestamp = now_timestamp()
+        timestamp = get_timestamp()
 
         base_message = {"message": message, "room": room, "author": author}
         event = messenger.format_message_event(message, room, author, timestamp)
@@ -173,6 +230,6 @@ class TestFormatEvent:
         assert event.get("__type") == event_type
 
     def test_formatted_event_has_timestamp(self):
-        timestamp = now_timestamp()
+        timestamp = get_timestamp()
         event = messenger.format_event({}, "_", timestamp)
         assert event.get("createdAt") == timestamp

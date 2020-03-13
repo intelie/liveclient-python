@@ -31,3 +31,6 @@ class Collector:
 
     def is_empty(self):
         return len(self.buffer) == 0
+
+    def __getitem__(self, key):
+        return self.buffer[key]
