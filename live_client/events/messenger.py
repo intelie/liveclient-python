@@ -41,16 +41,15 @@ def join_messenger(settings):
 
 
 def add_to_room(settings, room_id, sender):
-    return add_or_remove_from_room(settings, room_id, sender, action=CONTROL_ACTIONS.ADD_USER)
+    return update_room_users(settings, room_id, sender, action=CONTROL_ACTIONS.ADD_USER)
 
 
 def remove_from_room(settings, room_id, sender):
-    return add_or_remove_from_room(room_id, sender, settings, action=CONTROL_ACTIONS.REMOVE_USER)
+    return update_room_users(room_id, sender, settings, action=CONTROL_ACTIONS.REMOVE_USER)
 
 
-def add_or_remove_from_room(settings, room_id, sender, action):
+def update_room_users(settings, room_id, sender, action):
     connection_func = build_sender_function(settings["live"])
-
     control_data = {
         "action": "room_users_updated",
         "sender": sender,
