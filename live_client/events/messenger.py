@@ -50,7 +50,20 @@ def remove_from_room(settings, room_id, sender):
 
 def update_room_users(settings, room_id, sender, action):
     connection_func = build_sender_function(settings["live"])
-    control_data = {
+    author = settings["output"]["author"]
+
+    update_message_payload = create_room_update_data(room_id, sender, author, action)
+    update_event = format_event(update_message_payload, EVENT_TYPES["control"], get_timestamp())
+    connection_func(update_event)
+
+
+def create_room_update_data(room_id, sender, author, action):
+    target_collection = {
+        CONTROL_ACTIONS.ADD_USER: "addedOrUpdatedUsers",
+        CONTROL_ACTIONS.REMOVE_USER: "removedUsers",
+    }
+
+    data = {
         "action": "room_users_updated",
         "sender": sender,
         "addedOrUpdatedUsers": [],
@@ -58,21 +71,15 @@ def update_room_users(settings, room_id, sender, action):
         "room": {"id": room_id},
     }
 
-    bot_data = settings["output"]["author"]
-
     if action == CONTROL_ACTIONS.ADD_USER:
-        control_key = "addedOrUpdatedUsers"
-        bot_data.update(isNewUser=True, isAdmin=False)
-    elif action == CONTROL_ACTIONS.REMOVE_USER:
-        control_key = "removedUsers"
+        author.update(isNewUser=True, isAdmin=False)
 
-    control_data[control_key].append(bot_data)
+    data[target_collection[action]].append(author)
 
-    event = format_event(control_data, EVENT_TYPES["control"], get_timestamp())
-    connection_func(event)
+    return data
 
 
-#[ECS][FIXME]: This function may choose none, only one or both functions.
+# [ECS][FIXME]: This function may choose none, only one or both functions.
 #   Even when one of them or both are choosen neither may be called depending on internal rules.
 #   It is way too complex and should be eliminated
 #   Clients should explicitly call the version they want.
