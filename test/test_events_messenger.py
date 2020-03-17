@@ -4,15 +4,51 @@ from testbase import *
 
 from live_client.events import messenger
 from predicates import *
+from mocks import *
 
 
 def gen_settings(**kwargs):
     default_settings = {
-        "output": {"author": {"name": "__default_name__"}, "room": "__room__"},
+        "output": {"author": {"id": 1, "name": "__default_name__"}, "room": "__room__"},
         "live": {},
     }
     default_settings.update(kwargs)
     return default_settings
+
+
+class TestUpdateRoomUsers:
+    """
+    [Função original]
+    Adiciona ou remove usuários de uma sala de chat
+    Recebe: o id da sala, os dados do usuário a ser removido, as informações de conexão.
+    Efeitos esperados:
+        - Sala de chat agora tem o usuário adicionado ou removido.
+        - Dados do usuário são os mesmos fornecidos na entrada
+
+    [Teste]
+    - Verificar que usuários em addedOrUpdatedUsers são adicionados
+    - Verificar que usuários em removedUsers são removidos
+    """
+
+    def test_user_is_added(self):
+        user = {"id": 2, "name": "__local_test__"}
+        settings = gen_settings()
+        settings["output"]["author"] = user
+
+        room_id = 1
+        chat_mock = ChatMock()
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", chat_mock.update_room
+        ):
+            messenger.update_room_users(
+                settings,
+                room_id=room_id,
+                sender="Tester",
+                action=messenger.CONTROL_ACTIONS.ADD_USER,
+            )
+
+            assert len(chat_mock.room) > 0
+            assert chat_mock.room["users"][user["id"]]["name"] == user["name"]
 
 
 class TestSendMessage:
@@ -25,22 +61,22 @@ class TestSendMessage:
             chat_mock.reset_mock()
 
         # None shall be called:
-        messenger.send_message("_", message_type = "")
+        messenger.send_message("_", message_type="")
         assert not event_mock.called and not chat_mock.called
         reset_mocks()
 
         # send event shall be called:
-        messenger.send_message("_", message_type = messenger.MESSAGE_TYPES.EVENT)
+        messenger.send_message("_", message_type=messenger.MESSAGE_TYPES.EVENT)
         assert event_mock.called and not chat_mock.called
         reset_mocks()
 
         # send chat shall be called:
-        messenger.send_message("_", message_type = messenger.MESSAGE_TYPES.CHAT)
+        messenger.send_message("_", message_type=messenger.MESSAGE_TYPES.CHAT)
         assert not event_mock.called and chat_mock.called
         reset_mocks()
 
         # both shall be called:
-        messenger.send_message("_", message_type = None)
+        messenger.send_message("_", message_type=None)
         assert event_mock.called and chat_mock.called
 
 
@@ -64,7 +100,7 @@ class TestMaybeSendMessageEvent:
             "mnemonic": messages_mnemonic,
         }
         collector = Collector()
-        with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
+        with patch_with_factory("live_client.events.messenger.build_sender_function", collector):
             message = "_"
             timestamp = get_timestamp()
             message_sent = messenger.maybe_send_message_event(message, timestamp, settings)
@@ -77,9 +113,7 @@ class TestMaybeSendMessageEvent:
 
     def test_message_not_sent_if_no_event_type(self):
         settings = gen_settings()
-        settings["output"]["message_event"] = {
-            "mnemonic": "_",
-        }
+        settings["output"]["message_event"] = {"mnemonic": "_"}
         collector = Collector()
         with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
             message = "_"
@@ -90,9 +124,7 @@ class TestMaybeSendMessageEvent:
 
     def test_message_not_sent_if_no_messages_mnemonic(self):
         settings = gen_settings()
-        settings["output"]["message_event"] = {
-            "event_type": "__event_type__",
-        }
+        settings["output"]["message_event"] = {"event_type": "__event_type__"}
         collector = Collector()
         with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
             message = "_"

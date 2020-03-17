@@ -3,9 +3,7 @@ from unittest import mock
 
 class ChatMock:
     def __init__(self):
-        self.room = {
-            "users": {},
-        }
+        self.room = {"users": {}}
 
     def update_room(self, event):
         for user in event.get("removedUsers", []):
