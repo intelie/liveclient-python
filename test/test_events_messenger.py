@@ -17,19 +17,6 @@ def gen_settings(**kwargs):
 
 
 class TestUpdateRoomUsers:
-    """
-    [Função original]
-    Adiciona ou remove usuários de uma sala de chat
-    Recebe: o id da sala, os dados do usuário a ser removido, as informações de conexão.
-    Efeitos esperados:
-        - Sala de chat agora tem o usuário adicionado ou removido.
-        - Dados do usuário são os mesmos fornecidos na entrada
-
-    [Teste]
-    - Verificar que usuários em addedOrUpdatedUsers são adicionados
-    - Verificar que usuários em removedUsers são removidos
-    """
-
     def test_user_is_added(self):
         user = {"id": 2, "name": "__local_test__"}
         settings = gen_settings()
@@ -49,6 +36,26 @@ class TestUpdateRoomUsers:
 
             assert len(chat_mock.room) > 0
             assert chat_mock.room["users"][user["id"]]["name"] == user["name"]
+
+    def test_user_is_removed(self):
+        user = {"id": 2, "name": "__local_test__"}
+        settings = gen_settings()
+        settings["output"]["author"] = user
+
+        room_id = 1
+        chat_mock = ChatMock()
+        chat_mock.room["users"][2] = user
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", chat_mock.update_room
+        ):
+            messenger.update_room_users(
+                settings,
+                room_id=room_id,
+                sender="Tester",
+                action=messenger.CONTROL_ACTIONS.REMOVE_USER,
+            )
+
+            assert chat_mock.room["users"] == {}
 
 
 class TestSendMessage:
