@@ -8,3 +8,7 @@ def dict_contains(d, other):
         if d.get(k) != v:
             return False
     return True
+
+
+def is_empty(obj):
+    return not bool(obj)
