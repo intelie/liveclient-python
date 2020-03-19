@@ -16,6 +16,40 @@ def gen_settings(**kwargs):
     return default_settings
 
 
+class TestRemoveFromRoom:
+    def test_user_is_removed(self):
+        user = {"id": 2, "name": "__local_test__"}
+        settings = gen_settings()
+        settings["output"]["author"] = user
+
+        room_id = 1
+        chat_mock = ChatMock()
+        chat_mock.room["users"][2] = user
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", chat_mock.update_room
+        ):
+            messenger.remove_from_room(settings, room_id, "Tester")
+            assert chat_mock.room["users"] == {}
+
+    def test_user_is_not_removed(self):
+        user = {"id": 1, "name": "__local_test__"}
+        settings = gen_settings()
+        settings["output"]["author"] = user
+
+        room_id = 1
+        existing_user = {"id": 2, "name": "__should_remain__"}
+        chat_mock = ChatMock()
+        chat_mock.add_user(existing_user)
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", chat_mock.update_room
+        ):
+            messenger.remove_from_room(settings, room_id, "Tester")
+            assert (
+                bool(chat_mock.room["users"])
+                and chat_mock.room["users"][2]["name"] == existing_user["name"]
+            )
+
+
 class TestUpdateRoomUsers:
     def test_user_is_added(self):
         user = {"id": 2, "name": "__local_test__"}

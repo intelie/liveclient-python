@@ -7,10 +7,13 @@ class ChatMock:
 
     def update_room(self, event):
         for user in event.get("removedUsers", []):
-            removed_user = self.room["users"].pop(user["id"])
+            removed_user = self.room["users"].pop(user["id"], None)
 
         for user in event.get("addedOrUpdatedUsers", []):
             self.room["users"][user["id"]] = user
+
+    def add_user(self, user):
+        self.room["users"][user["id"]] = user
 
 
 # [ECS]: "patch_with_factory" is not the best name for this function
