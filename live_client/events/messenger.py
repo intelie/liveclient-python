@@ -45,7 +45,7 @@ def add_to_room(settings, room_id, sender):
 
 
 def remove_from_room(settings, room_id, sender):
-    return update_room_users(room_id, sender, settings, action=CONTROL_ACTIONS.REMOVE_USER)
+    return update_room_users(settings, room_id, sender, action=CONTROL_ACTIONS.REMOVE_USER)
 
 
 def update_room_users(settings, room_id, sender, action):
