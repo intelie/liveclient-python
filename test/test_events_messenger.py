@@ -16,6 +16,31 @@ def gen_settings(**kwargs):
     return default_settings
 
 
+class TestJoinMessenger:
+    def test_correct_action_sent(self):
+        settings = gen_settings()
+
+        connection_mock = mock.Mock()
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", connection_mock
+        ):
+            messenger.join_messenger(settings)
+            event = connection_mock.call_args[0][0]
+            assert event["action"] == "user_joined_messenger"
+
+    def test_correct_author_sent(self):
+        settings = gen_settings()
+        author = settings["output"]["author"]
+
+        connection_mock = mock.Mock()
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", connection_mock
+        ):
+            messenger.join_messenger(settings)
+            event = connection_mock.call_args[0][0]
+            assert event["user"] == author
+
+
 class TestAddToRoom:
     def test_user_is_added(self):
         user = {"id": 2, "name": "__local_test__"}
