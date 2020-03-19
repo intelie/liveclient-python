@@ -42,6 +42,17 @@ class TestJoinMessenger:
 
 
 class TestAddToRoom:
+    def test_correct_action_sent(self):
+        settings = gen_settings()
+        connection_mock = mock.Mock()
+
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", connection_mock
+        ):
+            messenger.add_to_room(settings, 0, "_")
+            event = connection_mock.call_args[0][0]
+            assert event["action"] == "room_users_updated"
+
     def test_user_is_added(self):
         user = {"id": 2, "name": "__local_test__"}
         settings = gen_settings()
@@ -77,6 +88,17 @@ class TestAddToRoom:
 
 
 class TestRemoveFromRoom:
+    def test_correct_action_sent(self):
+        settings = gen_settings()
+        connection_mock = mock.Mock()
+
+        with patch_with_factory(
+            "live_client.events.messenger.build_sender_function", connection_mock
+        ):
+            messenger.remove_from_room(settings, 0, "_")
+            event = connection_mock.call_args[0][0]
+            assert event["action"] == "room_users_updated"
+
     def test_user_is_removed(self):
         user = {"id": 2, "name": "__local_test__"}
         settings = gen_settings()
