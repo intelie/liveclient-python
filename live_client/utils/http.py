@@ -11,7 +11,7 @@ from live_client.utils import logging
 __all__ = ["make_request", "request_with_timeout"]
 
 
-def make_request(url, settings, timeout=None, max_retries=0):
+def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True):
     live_settings = settings["live"]
 
     if "session" not in live_settings:
@@ -24,11 +24,19 @@ def make_request(url, settings, timeout=None, max_retries=0):
             try:
                 response = session.get(url)
                 response.raise_for_status()
-                result = response.json()
+                content_type = response.headers.get("Content-Type")
+
+                if "text/plain" in content_type:
+                    result = response.text
+                else:
+                    result = response.json()
 
             except RequestException as e:
-                logging.exception(f"Error during request for {url}, {e}<{type(e)}>")
-                result = None
+                if handle_errors:
+                    logging.exception(f"Error during request for {url}, {e}<{type(e)}>")
+                    result = None
+                else:
+                    raise
 
     return result
 
