@@ -5,20 +5,12 @@ from testbase import *
 from live_client.events import messenger
 from predicates import *
 from mocks import *
-
-
-def gen_settings(**kwargs):
-    default_settings = {
-        "output": {"author": {"id": 1, "name": "__default_name__"}, "room": "__room__"},
-        "live": {},
-    }
-    default_settings.update(kwargs)
-    return default_settings
+from utils import settings as S
 
 
 class TestJoinMessenger:
     def test_correct_action_sent(self):
-        settings = gen_settings()
+        settings = S.create()
 
         connection_mock = mock.Mock()
         with patch_with_factory(
@@ -29,7 +21,7 @@ class TestJoinMessenger:
             assert event["action"] == "user_joined_messenger"
 
     def test_correct_author_sent(self):
-        settings = gen_settings()
+        settings = S.create()
         author = settings["output"]["author"]
 
         connection_mock = mock.Mock()
@@ -43,7 +35,7 @@ class TestJoinMessenger:
 
 class TestAddToRoom:
     def test_correct_action_sent(self):
-        settings = gen_settings()
+        settings = S.create()
         connection_mock = mock.Mock()
 
         with patch_with_factory(
@@ -55,7 +47,7 @@ class TestAddToRoom:
 
     def test_user_is_added(self):
         user = {"id": 2, "name": "__local_test__"}
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["author"] = user
 
         room_id = 1
@@ -70,7 +62,7 @@ class TestAddToRoom:
 
     def test_user_is_not_removed(self):
         user = {"id": 1, "name": "__local_test__"}
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["author"] = user
 
         room_id = 1
@@ -89,7 +81,7 @@ class TestAddToRoom:
 
 class TestRemoveFromRoom:
     def test_correct_action_sent(self):
-        settings = gen_settings()
+        settings = S.create()
         connection_mock = mock.Mock()
 
         with patch_with_factory(
@@ -101,7 +93,7 @@ class TestRemoveFromRoom:
 
     def test_user_is_removed(self):
         user = {"id": 2, "name": "__local_test__"}
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["author"] = user
 
         room_id = 1
@@ -115,7 +107,7 @@ class TestRemoveFromRoom:
 
     def test_user_is_not_removed(self):
         user = {"id": 1, "name": "__local_test__"}
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["author"] = user
 
         room_id = 1
@@ -135,7 +127,7 @@ class TestRemoveFromRoom:
 class TestUpdateRoomUsers:
     def test_user_is_added(self):
         user = {"id": 2, "name": "__local_test__"}
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["author"] = user
 
         room_id = 1
@@ -155,7 +147,7 @@ class TestUpdateRoomUsers:
 
     def test_user_is_removed(self):
         user = {"id": 2, "name": "__local_test__"}
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["author"] = user
 
         room_id = 1
@@ -217,7 +209,7 @@ class TestMaybeSendMessageEvent:
     def test_message_should_be_sent(self):
         messages_mnemonic = "__mnemonic__"
 
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["message_event"] = {
             "event_type": "__event_type__",
             "mnemonic": messages_mnemonic,
@@ -235,7 +227,7 @@ class TestMaybeSendMessageEvent:
             assert sent_event.get(messages_mnemonic).get("value") == message
 
     def test_message_not_sent_if_no_event_type(self):
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["message_event"] = {"mnemonic": "_"}
         collector = Collector()
         with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
@@ -246,7 +238,7 @@ class TestMaybeSendMessageEvent:
             assert collector.is_empty()
 
     def test_message_not_sent_if_no_messages_mnemonic(self):
-        settings = gen_settings()
+        settings = S.create()
         settings["output"]["message_event"] = {"event_type": "__event_type__"}
         collector = Collector()
         with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
@@ -313,7 +305,7 @@ class TestMaybeSendChatMessage:
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
     def test_author_name_updates_author(self):
-        settings = gen_settings()
+        settings = S.create()
         new_author_name = "__new_author__"
         assert settings["output"]["author"]["name"] != new_author_name
         collector = Collector()
@@ -327,7 +319,7 @@ class TestMaybeSendChatMessage:
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
     def test_sender_called_on_success(self):
-        settings = gen_settings()
+        settings = S.create()
         collector = Collector()
         with mock.patch("live_client.events.messenger.build_sender_function", lambda _: collector):
             messenger.maybe_send_chat_message("_", settings)
@@ -338,7 +330,7 @@ class TestMaybeSendChatMessage:
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
     def test_returns_true_on_success(self):
-        settings = gen_settings()
+        settings = S.create()
         ret = messenger.maybe_send_chat_message("_", settings)
         assert ret is True
 
@@ -349,7 +341,7 @@ class TestMaybeSendChatMessage:
     @mock.patch("live_client.utils.logging.debug", no_action)
     @mock.patch("live_client.utils.logging.warn", no_action)
     def test_returns_true_on_success(self):
-        settings = gen_settings(output={})
+        settings = S.create(output={})
         ret = messenger.maybe_send_chat_message("_", settings)
         assert ret is False
 
