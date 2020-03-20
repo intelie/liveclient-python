@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 import sys
 import os
-import re
 import argparse
 import json
+
 import eliot
 
-from live_client import REQUIREMENTS
-from live_client.resources.plugins import list_plugins
-from live_client.resources.access_control.user import fetch_user_info
+from live_client.resources.base import is_live_available
+from live_client.connection import rest_input
+from live_client.utils import features
+
 from live_client.utils import logging
 from live_client.utils.colors import TextColors
 
 
-REQUIREMENT_RE = re.compile(r"(?P<name>[\w-]+)(?P<comparison>(==|<=|>=|<|>))(?P<version>.*)")
-SEMVER_RE = re.compile(r"(?P<major>[\d]+).(?P<minor>[\d]+).(?P<patch>[\d]+)")
-
-
+##
+# Input handling
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(
         description="Validates the requirements for available features"
@@ -25,6 +24,9 @@ def parse_arguments(argv):
     parser.add_argument("--live_url", dest="live_url", help="The url Intelie Live")
     parser.add_argument("--username", dest="username", help="Live username")
     parser.add_argument("--password", dest="password", help="Live password")
+    parser.add_argument(
+        "--rest_input", dest="rest_input", required=False, help="Path of the rest input integration"
+    )
 
     args = parser.parse_args(argv[1:])
     if args.settings_file:
@@ -44,99 +46,36 @@ def build_settings(args):
         settings = {
             "live": {"url": args.live_url, "username": args.username, "password": args.password}
         }
+        if args.rest_input:
+            settings["live"]["rest_input"] = args.rest_input
 
     return settings
 
 
-def list_features(settings):
-    def parse_version(version_data):
-        match = SEMVER_RE.search(version_data)
-        if match is None:
-            parsed = (0, 0, 0)
-        else:
-            parsed = tuple(map(int, match.groups()))
+##
+# Validation
+def validate_settings(settings):
+    statuses = {}
 
-        return parsed
+    # Check if the rest-input endpoint is valid
+    rest_available, rest_message = rest_input.is_available(settings.get("live", {}))
+    statuses["rest_input"] = {"is_available": rest_available, "messages": [rest_message]}
 
-    def compare_versions(x, y, comparison="=="):
-        comparators = {
-            "==": lambda a, b: a == b,
-            "<=": lambda a, b: a <= b,
-            ">=": lambda a, b: a >= b,
-            "<": lambda a, b: a < b,
-            ">": lambda a, b: a > b,
-        }
-        return comparators.get(comparison)(x, y)
+    return statuses
 
-    def matches_requirement(name, comparison, version_spec):
-        available_version = parse_version(available_plugins.get(name))
-        expected_version = parse_version(version_spec)
-        return compare_versions(available_version, expected_version, comparison)
 
-    def merge_user_permissions(userinfo):
-        permissions = []
+##
+# Output
+def print_error(message, status=1, verbose=True):
+    print(f"\v{TextColors.BOLD}{message}{TextColors.ENDC}\v")
+    if verbose:
+        eliot.add_destinations(logging.log_to_stdout)
+    exit(status)
 
-        for team in userinfo.get("teams", []):
-            for role in team.get("roles", []):
-                permissions.extend(role.get("permissions", []))
 
-        return set(permissions)
-
-    def prepare_message(text, sucess=True):
-        if sucess:
-            color = ""
-        else:
-            color = TextColors.UNDERLINE
-            logging.warn(text)
-
-        return f"{color}{text}{TextColors.ENDC}"
-
-    available_plugins = dict(
-        (item.get("name"), item.get("version")) for item in list_plugins(settings)
-    )
-    user_permissions = merge_user_permissions(fetch_user_info(settings, include_teams=True))
-
-    features_status = {}
-    if available_plugins:
-        for module, requirements in REQUIREMENTS.items():
-            messages = []
-            is_available = True
-
-            for plugin in requirements.get("plugins", []):
-                parsed_requirement = REQUIREMENT_RE.search(plugin).groupdict()
-                name = parsed_requirement.get("name")
-                comparison = parsed_requirement.get("comparison")
-                version = parsed_requirement.get("version")
-
-                if name not in available_plugins:
-                    is_available = False
-                    message = prepare_message(f"{plugin} expected, but not installed", sucess=False)
-
-                else:
-                    has_expected_version = matches_requirement(name, comparison, version)
-                    is_available = is_available and has_expected_version
-                    available_version = available_plugins.get(name)
-                    message = prepare_message(
-                        f"{plugin} expected, {name}=={available_version} found",
-                        sucess=has_expected_version,
-                    )
-
-                messages.append(prepare_message(message, has_expected_version))
-
-            for permission in requirements.get("permissions", []):
-                if permission not in user_permissions:
-                    is_available = False
-                    message = prepare_message(
-                        f"User does not have permission '{permission}'", sucess=False
-                    )
-                else:
-                    message = f"Permission '{permission}' is present"
-
-                messages.append(message)
-
-            features_status.update({module: {"messages": messages, "is_available": is_available}})
-
-    return features_status
+def print_results(messages):
+    for message in messages:
+        print(message)
 
 
 if __name__ == "__main__":
@@ -146,26 +85,15 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
 
-    features = list_features(settings)
-    if not features:
-        # Error, check the logs
-        print("Error. Please check the following log:")
-        eliot.add_destinations(logging.log_to_stdout)
+    is_available = is_live_available(settings)
 
+    if is_available:
+        settings_status = validate_settings(settings)
+        features_status = features.check_status(settings)
+        messages = features.prepare_report(settings, settings_status, features_status)
+        print_results(messages)
     else:
-        print(f"\v{TextColors.BOLD}Status for {settings['live']['url']}{TextColors.ENDC}")
-        for module, status in features.items():
-            messages = status.get("messages")
-            is_available = status.get("is_available")
-            if is_available:
-                availability = "AVAILABLE"
-                color = TextColors.OKGREEN
-            else:
-                availability = "UNAVAILABLE"
-                color = TextColors.FAIL
-
-            print(f"\v{color}{module} is {availability}{TextColors.ENDC}:")
-            for item in messages:
-                print(f"- {item}")
-
-        print("\v")
+        print_error(
+            f"Could not connect to {settings['live']['url']}.\nPlease check your settings.",
+            verbose=False,
+        )
