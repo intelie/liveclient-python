@@ -80,7 +80,7 @@ More examples can be found on the folder `docs/examples`.
 
 This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
 
-## Publishing to pypi
+### Publishing to pypi
 
 ```
 # Build the packages
