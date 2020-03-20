@@ -2,7 +2,7 @@
 import requests
 from multiprocessing import Process, Queue
 
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectionError
 from setproctitle import setproctitle
 from eliot import start_action
 
@@ -63,3 +63,27 @@ def async_event_sender(live_settings):
     process.start()
 
     return lambda event: events_queue.put(event)
+
+
+def is_available(live_settings):
+    session = build_session(live_settings)
+    url = f"{live_settings['url']}{live_settings['rest_input']}"
+
+    if ("url" in live_settings) and ("rest_input" in live_settings):
+        try:
+            response = session.get(url)
+            response.raise_for_status()
+        except ConnectionError as e:
+            is_available = False
+            message = str(e)
+        except RequestException as e:
+            is_available = e.response.status_code == 405
+            message = is_available and e.response.status_code or str(e)
+        else:
+            is_available = False
+            message = "No result"
+    else:
+        is_available = False
+        message = "Not configured"
+
+    return is_available, message
