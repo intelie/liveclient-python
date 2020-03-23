@@ -32,6 +32,7 @@ def send_event(event, live_settings=None):
         live_settings.update(session=build_session(live_settings))
 
     session = live_settings["session"]
+    verify_ssl = live_settings.get("verify_ssl", True)
     url = f"{live_settings['url']}{live_settings['rest_input']}"
 
     if not event:
@@ -39,11 +40,12 @@ def send_event(event, live_settings=None):
 
     try:
         with retry_on_failure(3.05, max_retries=5):
-            response = session.post(url, json=event)
+            response = session.post(url, json=event, verify=verify_ssl)
             response.raise_for_status()
     except RequestException as e:
         logging.exception("ERROR: Cannot send event, {}<{}>".format(e, type(e)))
         logging.exception("Event data: {}".format(event))
+        raise
 
 
 def async_send(queue, live_settings):

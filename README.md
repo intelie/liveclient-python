@@ -80,6 +80,11 @@ More examples can be found on the folder `docs/examples`.
 
 This project uses [black](https://github.com/psf/black) and [pre-commit](https://pre-commit.com/)
 
+### Running the Tests
+
+If you installled `dev-requirements.txt` you already have `pytest` installed.
+Then just `cd` to the `tests` directory and run `pytest`.
+
 ### Publishing to pypi
 
 ```
@@ -92,3 +97,5 @@ $ twine check dist/*
 # Upload the package
 $ twine upload dist/*
 ```
+
+

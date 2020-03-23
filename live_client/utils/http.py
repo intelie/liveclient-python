@@ -13,6 +13,7 @@ __all__ = ["make_request", "request_with_timeout"]
 
 def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True):
     live_settings = settings["live"]
+    verify_ssl = live_settings.get("verify_ssl", True)
 
     if "session" not in live_settings:
         live_settings.update(session=build_session(live_settings))
@@ -22,7 +23,7 @@ def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True)
     with start_action(action_type="make request", url=url):
         with retry_on_failure(timeout, max_retries=max_retries):
             try:
-                response = session.get(url)
+                response = session.get(url, verify=verify_ssl)
                 response.raise_for_status()
                 content_type = response.headers.get("Content-Type")
 
