@@ -70,20 +70,23 @@ def is_available(live_settings):
     url = f"{live_settings['url']}{live_settings['rest_input']}"
 
     if ("url" in live_settings) and ("rest_input" in live_settings):
+        verify_ssl = live_settings.get("verify_ssl", True)
+        ssl_message = f'TLS certificate validation is {verify_ssl and "enabled" or "disabled"}'
+
         try:
-            response = session.get(url)
+            response = session.get(url, verify=verify_ssl)
             response.raise_for_status()
         except ConnectionError as e:
             is_available = False
-            message = str(e)
+            messages = [str(e), ssl_message]
         except RequestException as e:
             is_available = e.response.status_code == 405
-            message = is_available and e.response.status_code or str(e)
+            messages = [is_available and f"status={e.response.status_code}" or str(e), ssl_message]
         else:
             is_available = False
-            message = "No result"
+            messages = ["No result", ssl_message]
     else:
         is_available = False
-        message = "Not configured"
+        messages = ["Not configured"]
 
-    return is_available, message
+    return is_available, messages

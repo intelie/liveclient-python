@@ -58,8 +58,8 @@ def validate_settings(settings):
     statuses = {}
 
     # Check if the rest-input endpoint is valid
-    rest_available, rest_message = rest_input.is_available(settings.get("live", {}))
-    statuses["rest_input"] = {"is_available": rest_available, "messages": [rest_message]}
+    rest_available, rest_messages = rest_input.is_available(settings.get("live", {}))
+    statuses["rest_input"] = {"is_available": rest_available, "messages": rest_messages}
 
     return statuses
 
