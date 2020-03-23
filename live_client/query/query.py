@@ -19,6 +19,7 @@ __all__ = ["on_event", "run", "start", "watch"]
 def start(statement, settings, timeout=None, **kwargs):
     live_settings = settings["live"]
     live_url = live_settings["url"]
+    verify_ssl = live_settings.get("verify_ssl", True)
 
     if "session" not in settings:
         settings.update(session=build_session(live_settings))
@@ -42,7 +43,7 @@ def start(statement, settings, timeout=None, **kwargs):
 
     with retry_on_failure(timeout, max_retries=max_retries):
         logging.debug(f"Query '{statement}' started")
-        r = session.post(api_url, json=query_payload)
+        r = session.post(api_url, json=query_payload, verify=verify_ssl)
         r.raise_for_status()
 
     channels = [item.get("channel") for item in r.json()]
