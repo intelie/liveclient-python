@@ -22,14 +22,9 @@ def get_readme():
     return ""
 
 
-def install_requires():
-    requirements = read_file("requirements.txt")
-    return requirements
-
-
 setup(
     name="live_client",
-    version="0.6.0",
+    version="0.6.1",
     description="Client libraries to connect with the Intelie LIVE platform",
     long_description=get_readme(),
     long_description_content_type="text/markdown",
@@ -38,7 +33,14 @@ setup(
     url="https://github.com/intelie/liveclient-python",
     author="Vitor Mazzi",
     author_email="vitor.mazzi@intelie.com.br",
-    install_requires=install_requires(),
+    install_requires=[
+        "aiocometd>=0.4.5",
+        "eliot>1",
+        "eliot-tree",
+        "pytz>=2019.2",
+        "requests>=2,<3",
+        "setproctitle>=1.1.10",
+    ],
     zip_safe=True,
     python_requires=">=3.6",
     classifiers=[
