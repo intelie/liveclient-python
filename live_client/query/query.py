@@ -120,6 +120,9 @@ def on_event(statement, settings, realtime=True, timeout=None, **query_args):
 
                 last_result = f(event, *args, **kwargs)
 
+            # Release resources after the query ends
+            results_queue.close()
+            results_process.terminate()
             results_process.join()
 
             return last_result
