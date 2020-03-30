@@ -1,54 +1,23 @@
-#!/usr/bin/env python3
-import sys
-import os
+# -*- coding: utf-8 -*-
 import re
-import argparse
-import json
-import eliot
 
 from live_client import REQUIREMENTS
 from live_client.resources.plugins import list_plugins
 from live_client.resources.access_control.user import fetch_user_info
-from live_client.utils import logging
-from live_client.utils.colors import TextColors
+from . import logging
+from .colors import TextColors
 
+__all__ = ["check_status", "prepare_report"]
 
 REQUIREMENT_RE = re.compile(r"(?P<name>[\w-]+)(?P<comparison>(==|<=|>=|<|>))(?P<version>.*)")
 SEMVER_RE = re.compile(r"(?P<major>[\d]+).(?P<minor>[\d]+).(?P<patch>[\d]+)")
 
 
-def parse_arguments(argv):
-    parser = argparse.ArgumentParser(
-        description="Validates the requirements for available features"
-    )
-    parser.add_argument("--settings", dest="settings_file", help="A settings file")
-    parser.add_argument("--live_url", dest="live_url", help="The url Intelie Live")
-    parser.add_argument("--username", dest="username", help="Live username")
-    parser.add_argument("--password", dest="password", help="Live password")
+def check_status(settings):
+    """
+    Validates the requirements for available features
+    """
 
-    args = parser.parse_args(argv[1:])
-    if args.settings_file:
-        if not os.path.isfile(args.settings_file):
-            parser.error(f"Invalid value for --settings ({args.settings_file}).")
-    elif not all([args.live_url, args.username, args.password]):
-        parser.error("Either --settings or --live_url, --username and --password are required")
-
-    return args
-
-
-def build_settings(args):
-    if args.settings_file:
-        with open(args.settings_file, "r") as fd:
-            settings = json.load(fd)
-    else:
-        settings = {
-            "live": {"url": args.live_url, "username": args.username, "password": args.password}
-        }
-
-    return settings
-
-
-def list_features(settings):
     def parse_version(version_data):
         match = SEMVER_RE.search(version_data)
         if match is None:
@@ -139,22 +108,11 @@ def list_features(settings):
     return features_status
 
 
-if __name__ == "__main__":
-    """
-    Validates the requirements for available features
-    """
-    args = parse_arguments(sys.argv)
-    settings = build_settings(args)
+def prepare_report(settings, *status_containers):
+    result = [f"\v{TextColors.BOLD}Status for {settings['live']['url']}{TextColors.ENDC}"]
 
-    features = list_features(settings)
-    if not features:
-        # Error, check the logs
-        print("Error. Please check the following log:")
-        eliot.add_destinations(logging.log_to_stdout)
-
-    else:
-        print(f"\v{TextColors.BOLD}Status for {settings['live']['url']}{TextColors.ENDC}")
-        for module, status in features.items():
+    for statuses in status_containers:
+        for key, status in statuses.items():
             messages = status.get("messages")
             is_available = status.get("is_available")
             if is_available:
@@ -164,8 +122,10 @@ if __name__ == "__main__":
                 availability = "UNAVAILABLE"
                 color = TextColors.FAIL
 
-            print(f"\v{color}{module} is {availability}{TextColors.ENDC}:")
+            result.append(f"\v{color}{key} is {availability}{TextColors.ENDC}:")
             for item in messages:
-                print(f"- {item}")
+                result.append(f"- {item}")
 
-        print("\v")
+    result.append("\v")
+
+    return result

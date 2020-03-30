@@ -2,7 +2,7 @@
 import requests
 from multiprocessing import Process, Queue
 
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, ConnectionError
 from setproctitle import setproctitle
 from eliot import start_action
 
@@ -32,6 +32,7 @@ def send_event(event, live_settings=None):
         live_settings.update(session=build_session(live_settings))
 
     session = live_settings["session"]
+    verify_ssl = live_settings.get("verify_ssl", True)
     url = f"{live_settings['url']}{live_settings['rest_input']}"
 
     if not event:
@@ -39,7 +40,7 @@ def send_event(event, live_settings=None):
 
     try:
         with retry_on_failure(3.05, max_retries=5):
-            response = session.post(url, json=event)
+            response = session.post(url, json=event, verify=verify_ssl)
             response.raise_for_status()
     except RequestException as e:
         logging.exception("ERROR: Cannot send event, {}<{}>".format(e, type(e)))
@@ -64,3 +65,30 @@ def async_event_sender(live_settings):
     process.start()
 
     return lambda event: events_queue.put(event)
+
+
+def is_available(live_settings):
+    session = build_session(live_settings)
+    url = f"{live_settings['url']}{live_settings['rest_input']}"
+
+    if ("url" in live_settings) and ("rest_input" in live_settings):
+        verify_ssl = live_settings.get("verify_ssl", True)
+        ssl_message = f'TLS certificate validation is {verify_ssl and "enabled" or "disabled"}'
+
+        try:
+            response = session.get(url, verify=verify_ssl)
+            response.raise_for_status()
+        except ConnectionError as e:
+            is_available = False
+            messages = [str(e), ssl_message]
+        except RequestException as e:
+            is_available = e.response.status_code == 405
+            messages = [is_available and f"status={e.response.status_code}" or str(e), ssl_message]
+        else:
+            is_available = False
+            messages = ["No result", ssl_message]
+    else:
+        is_available = False
+        messages = ["Not configured"]
+
+    return is_available, messages

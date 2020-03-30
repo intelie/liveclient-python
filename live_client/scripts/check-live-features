@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+import eliot
+
+from live_client.resources.base import is_live_available
+from live_client.connection import rest_input
+from live_client.utils import features
+
+from live_client.utils import logging
+from live_client.utils.colors import TextColors
+
+
+##
+# Input handling
+def parse_arguments(argv):
+    parser = argparse.ArgumentParser(
+        description="Validates the requirements for available features"
+    )
+    parser.add_argument("--settings", dest="settings_file", help="A settings file")
+    parser.add_argument("--live_url", dest="live_url", help="The url Intelie Live")
+    parser.add_argument("--username", dest="username", help="Live username")
+    parser.add_argument("--password", dest="password", help="Live password")
+    parser.add_argument(
+        "--rest_input", dest="rest_input", required=False, help="Path of the rest input integration"
+    )
+
+    args = parser.parse_args(argv[1:])
+    if args.settings_file:
+        if not os.path.isfile(args.settings_file):
+            parser.error(f"Invalid value for --settings ({args.settings_file}).")
+    elif not all([args.live_url, args.username, args.password]):
+        parser.error("Either --settings or --live_url, --username and --password are required")
+
+    return args
+
+
+def build_settings(args):
+    if args.settings_file:
+        with open(args.settings_file, "r") as fd:
+            settings = json.load(fd)
+    else:
+        settings = {
+            "live": {"url": args.live_url, "username": args.username, "password": args.password}
+        }
+        if args.rest_input:
+            settings["live"]["rest_input"] = args.rest_input
+
+    return settings
+
+
+##
+# Validation
+def validate_settings(settings):
+    # Check if the rest-input endpoint is valid
+    rest_available, rest_messages = rest_input.is_available(settings.get("live", {}))
+    return {"rest_input": {"is_available": rest_available, "messages": rest_messages}}
+
+
+##
+# Output
+def print_error(message, status=1, verbose=True):
+    print(f"\v{TextColors.BOLD}{message}{TextColors.ENDC}\v")
+    if verbose:
+        eliot.add_destinations(logging.log_to_stdout)
+    exit(status)
+
+
+def print_results(messages):
+    for message in messages:
+        print(message)
+
+
+if __name__ == "__main__":
+    """
+    Validates the requirements for available features
+    """
+    args = parse_arguments(sys.argv)
+    settings = build_settings(args)
+
+    is_available = is_live_available(settings)
+
+    if is_available:
+        settings_status = validate_settings(settings)
+        features_status = features.check_status(settings)
+        messages = features.prepare_report(settings, settings_status, features_status)
+        print_results(messages)
+    else:
+        print_error(
+            f"Could not connect to {settings['live']['url']}.\nPlease check your settings.",
+            verbose=False,
+        )
