@@ -10,15 +10,13 @@ __all__ = ["create", "format_and_send"]
 
 
 def create(annotation_data, settings=None, room=None):
-    output_settings = settings["output"]
+    output_settings = settings["output"].copy()
     connection_func = autodetect.build_sender_function(settings["live"])
 
     if room is None:
         room = output_settings["room"]
 
-    output_settings.update(
-        room=room, author=output_settings["author"], dashboard=output_settings.get("dashboard", {})
-    )
+    output_settings.update(room=room, dashboard=output_settings.get("dashboard", {}))
     format_and_send(annotation_data, output_settings, connection_func=connection_func)
 
 
