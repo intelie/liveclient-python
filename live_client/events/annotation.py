@@ -9,57 +9,49 @@ from .constants import DEFAULT_ANNOTATION_DURATION
 __all__ = ["create", "format_and_send"]
 
 
-def create(annotation_data, settings=None, room=None):
+def create(annotation_data, settings, room=None):
+    send_event = autodetect.build_sender_function(settings["live"])
+
     output_settings = settings["output"].copy()
-    connection_func = autodetect.build_sender_function(settings["live"])
-
-    if room is None:
-        room = output_settings["room"]
-
+    room = room or output_settings["room"]
     output_settings.update(room=room, dashboard=output_settings.get("dashboard", {}))
-    format_and_send(annotation_data, output_settings, connection_func=connection_func)
+
+    annotation_event = build_annotation_event(
+        annotation_data,
+        output_settings.get('author'),
+        output_settings.get('room'),
+        output_settings.get('dashboard'),
+    )
+    logging.debug("Creating annotation {}".format(annotation_event))
+    send_event(annotation_event)
 
 
-def format_and_send(annotation_data, settings, connection_func=None):
+def build_annotation_event(annotation_data, author, room, dashboard):
     timestamp = get_timestamp()
-    event = format_event(timestamp, annotation_data, settings)
-
-    logging.debug("Creating annotation {}".format(event))
-    connection_func(event)
-
-
-def format_event(timestamp, annotation_data, settings):
-    author_data = settings["author"]
-    room_data = settings["room"]
-    dashboard_data = settings["dashboard"]
-
     message_event = annotation_data.copy()
     message_event.update(
         __type="__annotations",
         __src=message_event.get("__src", "live_agent"),
         uid=message_event.get("uid", str(uuid.uuid4())),
         createdAt=int(message_event.get("createdAt", timestamp)),
-        author=author_data.get("name"),
-        room=room_data,
-        dashboardId=dashboard_data.get("id"),
-        dashboard=dashboard_data.get("name"),
+        author=author.get("name"),
+        room=room,
+        dashboardId=dashboard.get("id"),
+        dashboard=dashboard.get("name"),
         searchable=True,
     )
 
     begin = int(message_event.get("begin", timestamp))
-
-    end = message_event.pop("end", None)
-    if (end is None) or end < begin:
+    end = int(message_event.pop("end", -1))
+    if end < begin:
         end = begin + DEFAULT_ANNOTATION_DURATION
-
-    message_event.update(begin=begin)
-    message_event.update(end=int(end))
+    message_event.update(begin=begin, end=end)
 
     def has_invalid_value(key):
         return message_event.get(key, -1) in (0, None)
 
     if any(map(has_invalid_value, ("begin", "end", "createdAt"))):
-        logging.warn("Invalid annotation: {}".format(message_event))
+        logging.warn(f"Invalid annotation: {message_event}")
         return
 
     return message_event
