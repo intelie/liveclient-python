@@ -50,7 +50,9 @@ def async_send(queue, live_settings):
         logging.info("Remote logger process started")
         setproctitle("DDA: Remote logger")
 
-        live_settings.update(session=create_session(live_settings["username"], live_settings["password"]))
+        live_settings.update(
+            session=create_session(live_settings["username"], live_settings["password"])
+        )
         while True:
             event = queue.get()
             send_event(event, live_settings)

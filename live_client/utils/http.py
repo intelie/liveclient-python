@@ -16,7 +16,9 @@ def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True)
     verify_ssl = live_settings.get("verify_ssl", True)
 
     if "session" not in live_settings:
-        live_settings.update(session=create_session(live_settings["username"], live_settings["password"]))
+        live_settings.update(
+            session=create_session(live_settings["username"], live_settings["password"])
+        )
 
     session = live_settings["session"]
 

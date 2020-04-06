@@ -22,7 +22,9 @@ def start(statement, settings, timeout=None, **kwargs):
     verify_ssl = live_settings.get("verify_ssl", True)
 
     if "session" not in settings:
-        settings.update(session=create_session(live_settings["username"], live_settings["password"]))
+        settings.update(
+            session=create_session(live_settings["username"], live_settings["password"])
+        )
     session = settings["session"]
 
     realtime = kwargs.get("realtime", False)

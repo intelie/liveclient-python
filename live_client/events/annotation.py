@@ -18,9 +18,9 @@ def create(annotation_data, settings, room=None):
 
     annotation_event = build_annotation_event(
         annotation_data,
-        output_settings.get('author'),
-        output_settings.get('room'),
-        output_settings.get('dashboard'),
+        output_settings.get("author"),
+        output_settings.get("room"),
+        output_settings.get("dashboard"),
     )
     logging.debug("Creating annotation {}".format(annotation_event))
     send_event(annotation_event)
