@@ -25,6 +25,10 @@ class TestCreate:
             assert bool(event.get("uid")) == True
             assert bool(event["createdAt"]) == True
 
+    def test_raises_if_no_settings(self):
+        """ Function shall raise if no settings """
+        assert raises(TypeError, annotation.create, {}, settings=None)
+
     def test_raises_if_no_room(self):
         """ Function shall raise if no room"""
         settings = S.create(output={})
