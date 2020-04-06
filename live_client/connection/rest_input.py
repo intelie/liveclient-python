@@ -14,29 +14,26 @@ __all__ = ["send_event"]
 REQUIRED_PARAMETERS = ["url", "username", "password", "rest_input"]
 
 
-def build_session(live_settings):
-    username = live_settings["username"]
-    password = live_settings["password"]
-
+def create_session(username, password):
     session = requests.Session()
     session.auth = (username, password)
-
     return session
 
 
 def send_event(event, live_settings=None):
+    if not event:
+        return
+
     if live_settings is None:
         live_settings = {}
 
     if "session" not in live_settings:
-        live_settings.update(session=build_session(live_settings))
+        new_session = create_session(live_settings["username"], live_settings["password"])
+        live_settings.update(session=new_session)
 
     session = live_settings["session"]
     verify_ssl = live_settings.get("verify_ssl", True)
     url = f"{live_settings['url']}{live_settings['rest_input']}"
-
-    if not event:
-        return
 
     try:
         with retry_on_failure(3.05, max_retries=5):
@@ -53,7 +50,7 @@ def async_send(queue, live_settings):
         logging.info("Remote logger process started")
         setproctitle("DDA: Remote logger")
 
-        live_settings.update(session=build_session(live_settings))
+        live_settings.update(session=create_session(live_settings["username"], live_settings["password"]))
         while True:
             event = queue.get()
             send_event(event, live_settings)
@@ -68,7 +65,7 @@ def async_event_sender(live_settings):
 
 
 def is_available(live_settings):
-    session = build_session(live_settings)
+    session = create_session(live_settings["username"], live_settings["password"])
     url = f"{live_settings['url']}{live_settings['rest_input']}"
 
     if ("url" in live_settings) and ("rest_input" in live_settings):

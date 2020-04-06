@@ -8,7 +8,7 @@ from setproctitle import setproctitle
 from aiocometd import Client
 
 from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT
-from live_client.connection.rest_input import build_session
+from live_client.connection.rest_input import create_session
 from live_client.utils.network import retry_on_failure, ensure_timeout
 from live_client.utils import logging
 
@@ -22,7 +22,7 @@ def start(statement, settings, timeout=None, **kwargs):
     verify_ssl = live_settings.get("verify_ssl", True)
 
     if "session" not in settings:
-        settings.update(session=build_session(live_settings))
+        settings.update(session=create_session(live_settings["username"], live_settings["password"]))
     session = settings["session"]
 
     realtime = kwargs.get("realtime", False)
