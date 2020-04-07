@@ -30,7 +30,9 @@ def _build_annotation_event(annotation_data, author, room, dashboard):
     # TODO: [ECS] I think here we can just assume 0 or None should cause this
     # function to fill the annotation with the default values, so we can drop
     # the check below
-    if any([_is_invalid_timestamp(annotation_data.get(field, -1)) for field in ["begin", "createdAt"]]):
+    if any(
+        [_is_invalid_timestamp(annotation_data.get(field, -1)) for field in ["begin", "createdAt"]]
+    ):
         return None
 
     timestamp = get_timestamp()
