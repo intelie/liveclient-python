@@ -51,3 +51,33 @@ class TestCreate:
             assert annotation_data == _annotation_data
             assert settings == _settings
             assert room == _room
+
+
+class TestBuildAnnotationEvent:
+    def test_returns_none_on_invalid_data(self):
+        """ Event attributes 'begin' and 'createdAt' must be different from 0 or None when passed into the function """
+        res = annotation._build_annotation_event({"createdAt": None}, {}, {}, {})
+        assert res is None
+        res = annotation._build_annotation_event({"createdAt": 0}, {}, {}, {})
+        assert res is None
+
+        res = annotation._build_annotation_event({"begin": None}, {}, {}, {})
+        assert res is None
+        res = annotation._build_annotation_event({"begin": 0}, {}, {}, {})
+        assert res is None
+
+
+    def test_returns_event_on_valid_data(self):
+        """ On valid 'begin' and 'createdAt' attributes, returns a constructed event (a dict) """
+
+        # Empty values are valid:
+        res = annotation._build_annotation_event({}, {}, {}, {})
+        assert type(res) is dict
+
+        # Nonzero values are valid for 'createdAt':
+        res = annotation._build_annotation_event({"createdAt": 1}, {}, {}, {})
+        assert type(res) is dict
+
+        # Nonzero values are valid for 'begin':
+        res = annotation._build_annotation_event({"begin": 1}, {}, {}, {})
+        assert type(res) is dict
