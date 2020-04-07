@@ -9,6 +9,8 @@ from predicates import *
 from mocks import *
 from utils import settings as S
 
+DEFAULT_ANNOTATION_PARAMS = [{}, {}, {}, {}]
+
 
 class TestCreate:
     def test_annotation_has_correct_attributes(self):
@@ -56,6 +58,7 @@ class TestCreate:
 class TestBuildAnnotationEvent:
     def test_returns_none_on_invalid_data(self):
         """ Event attributes 'begin' and 'createdAt' must be different from 0 or None when passed into the function """
+
         res = annotation._build_annotation_event({"createdAt": None}, {}, {}, {})
         assert res is None
         res = annotation._build_annotation_event({"createdAt": 0}, {}, {}, {})
@@ -65,7 +68,6 @@ class TestBuildAnnotationEvent:
         assert res is None
         res = annotation._build_annotation_event({"begin": 0}, {}, {}, {})
         assert res is None
-
 
     def test_returns_event_on_valid_data(self):
         """ On valid 'begin' and 'createdAt' attributes, returns a constructed event (a dict) """
@@ -81,3 +83,35 @@ class TestBuildAnnotationEvent:
         # Nonzero values are valid for 'begin':
         res = annotation._build_annotation_event({"begin": 1}, {}, {}, {})
         assert type(res) is dict
+
+    def test_annotation_has_type(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        assert res.get("__type") is not None
+
+    def test_annotation_has_src(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        assert res.get("__src") is not None
+
+    def test_annotation_has_uid(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        assert res.get("uid") is not None
+
+    def test_annotation_has_createdAt(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        assert res.get("createdAt") is not None
+
+    def test_annotation_has_begin(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        assert res.get("begin") is not None
+
+    def test_annotation_has_valid_end(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        begin = res.get("begin")
+        end = res.get("end")
+        assert end is not None and end >= begin
+
+    def test_annotation_has_room_or_dashboard(self):
+        res = annotation._build_annotation_event(*DEFAULT_ANNOTATION_PARAMS)
+        assert res.get("room") is not None or (
+            res.get("dashboardId") is not None and res.get("dashboard") is not None
+        )
