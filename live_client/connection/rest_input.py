@@ -20,12 +20,20 @@ def create_session(username, password):
     return session
 
 
-def send_event(event, live_settings=None):
-    if not event:
-        return
+def _validate_settings(live_settings):
+    if not isinstance(live_settings, dict):
+        raise Exception("Invalid type for 'live_settings'. dict expected")
 
-    if live_settings is None:
-        live_settings = {}
+    for param in REQUIRED_PARAMETERS:
+        if live_settings.get(param) is None:
+            raise Exception(f"Invalid settings. Missing '{param}' field")
+
+
+def send_event(event, live_settings):
+    if not event:
+        return False
+
+    _validate_settings(live_settings)
 
     if "session" not in live_settings:
         new_session = create_session(live_settings["username"], live_settings["password"])
@@ -43,6 +51,8 @@ def send_event(event, live_settings=None):
         logging.exception("ERROR: Cannot send event, {}<{}>".format(e, type(e)))
         logging.exception("Event data: {}".format(event))
         raise
+
+    return True
 
 
 def async_send(queue, live_settings):
