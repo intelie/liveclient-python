@@ -49,6 +49,4 @@ class TestSendEvent:
     @mock.patch("requests.Response.raise_for_status")
     def test_attempts_to_send_event_if_valid_data(self, raise_for_status_mock, post_mock):
         res = rest_input.send_event({"message": "_"}, DEFAULT_SETTINGS)
-        print(post_mock.call_args)
-        print(raise_for_status_mock.call_args)
         assert res == True
