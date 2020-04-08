@@ -10,6 +10,7 @@ from utils import settings as S
 
 DEFAULT_SETTINGS = {param: "" for param in rest_input.REQUIRED_PARAMETERS}
 
+
 class TestSendEvent:
     def test_returns_false_if_no_or_empty_event(self):
         assert rest_input.send_event(None, {}) == False
@@ -23,25 +24,25 @@ class TestSendEvent:
             Exception,
             rest_input.send_event,
             {"message": "_"},
-            {"url": "","username": "", "password": ""}
+            {"url": "", "username": "", "password": ""},
         )
         assert raises(
             Exception,
             rest_input.send_event,
             {"message": "_"},
-            {"url": "","username": "", "rest_input": ""}
+            {"url": "", "username": "", "rest_input": ""},
         )
         assert raises(
             Exception,
             rest_input.send_event,
             {"message": "_"},
-            {"url": "","password": "", "rest_input": ""}
+            {"url": "", "password": "", "rest_input": ""},
         )
         assert raises(
             Exception,
             rest_input.send_event,
             {"message": "_"},
-            {"username": "", "password": "", "rest_input": ""}
+            {"username": "", "password": "", "rest_input": ""},
         )
 
     @mock.patch("requests.Session.post")
