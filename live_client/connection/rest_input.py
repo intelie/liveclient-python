@@ -22,7 +22,9 @@ def create_session(username, password):
 
 def _validate_settings(live_settings):
     if not isinstance(live_settings, dict):
-        raise Exception("Invalid type for 'live_settings'. dict expected")
+        raise Exception(
+            f"Invalid type for 'live_settings'. 'dict' expected, got '{type(live_settings)}'"
+        )
 
     for param in REQUIRED_PARAMETERS:
         if live_settings.get(param) is None:
@@ -33,7 +35,11 @@ def send_event(event, live_settings):
     if not event:
         return False
 
-    _validate_settings(live_settings)
+    try:
+        _validate_settings(live_settings)
+    except Exception as e:
+        logging.exception(e)
+        raise
 
     if "session" not in live_settings:
         new_session = create_session(live_settings["username"], live_settings["password"])
@@ -60,16 +66,24 @@ def async_send(queue, live_settings):
         logging.info("Remote logger process started")
         setproctitle("DDA: Remote logger")
 
+        # live_settings["session"] = None
+        # FIXME: We don't need this call here. send_event will handle the session, we just need to invalidate it here
         live_settings.update(
             session=create_session(live_settings["username"], live_settings["password"])
         )
         while True:
             event = queue.get()
+            if event is None:
+                break
             send_event(event, live_settings)
 
 
 def async_event_sender(live_settings):
     events_queue = Queue()
+    # FIXME: [ECS] We need a way to access the process handle below outside this function:
+    # [ECS] Update: Now "async_send" exits the message loop if None is received. We still
+    # need to provide the process handle to the external world, but at least now we have
+    # a bit of control over the running process.
     process = Process(target=async_send, args=(events_queue, live_settings))
     process.start()
 
