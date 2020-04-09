@@ -41,7 +41,7 @@ def send_event(event, live_settings):
         logging.exception(e)
         raise
 
-    if "session" not in live_settings:
+    if live_settings.get("session") is None:
         new_session = create_session(live_settings["username"], live_settings["password"])
         live_settings.update(session=new_session)
 
