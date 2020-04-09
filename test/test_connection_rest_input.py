@@ -1,11 +1,16 @@
-from unittest import mock
-import requests
-
 from testbase import *
 
+import json
+import multiprocessing as mp
+import queue
+import requests
+import time
+
+from unittest import mock
+
 from live_client.connection import rest_input
-from predicates import *
 from mocks import *
+from predicates import *
 from utils import settings as S
 
 DEFAULT_SETTINGS = {param: "" for param in rest_input.REQUIRED_PARAMETERS}
@@ -50,3 +55,10 @@ class TestSendEvent:
     def test_attempts_to_send_event_if_valid_data(self, raise_for_status_mock, post_mock):
         res = rest_input.send_event({"message": "_"}, DEFAULT_SETTINGS)
         assert res == True
+
+    @mock.patch("requests.Session.post")
+    @mock.patch("requests.Response.raise_for_status")
+    def test_updates_the_session_on_success(self, raise_for_status_mock, post_mock):
+        DEFAULT_SETTINGS["session"] = None
+        res = rest_input.send_event({"message": "_"}, DEFAULT_SETTINGS)
+        assert DEFAULT_SETTINGS.get("session") is not None
