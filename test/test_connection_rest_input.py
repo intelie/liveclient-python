@@ -62,3 +62,16 @@ class TestSendEvent:
         DEFAULT_SETTINGS["session"] = None
         res = rest_input.send_event({"message": "_"}, DEFAULT_SETTINGS)
         assert DEFAULT_SETTINGS.get("session") is not None
+
+
+class TestAsyncSend:
+    @mock.patch("requests.Session.post")
+    def test_event_trigered_on_queue_put(self, post_mock):
+        q = queue.Queue()
+        event = {"message": "teste !"}
+        q.put(event)
+        q.put(None)
+        rest_input.async_send(q, DEFAULT_SETTINGS)
+        post_mock.assert_called_with(
+            DEFAULT_SETTINGS["url"] + DEFAULT_SETTINGS["rest_input"], json=event, verify=True
+        )
