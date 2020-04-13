@@ -75,3 +75,42 @@ class TestAsyncSend:
         post_mock.assert_called_with(
             DEFAULT_SETTINGS["url"] + DEFAULT_SETTINGS["rest_input"], json=event, verify=True
         )
+
+
+# class TestAsyncEventSender:
+#    pass
+
+
+class TestIsAvailable:
+    @mock.patch("requests.Session.get")
+    def test_shall_return_status_and_messages(self, get_mock):
+        result = rest_input.is_available(DEFAULT_SETTINGS)
+        assert type(result[0]) == bool
+        assert type(result[1]) == list
+        for val in result[1]:
+            assert type(val) == str
+
+    @mock.patch("requests.Session.get")
+    def test_shall_notify_wrong_configuration(self, get_mock):
+        settings = {}
+        result = rest_input.is_available(settings)
+
+        assert result[0] == False
+        assert result[1][0] == "Not configured"
+
+    @mock.patch("requests.Session.get")
+    def test_shall_return_true_on_method_not_allowed(self, get_mock):
+        response = mock.Mock()
+        response.status_code = 405
+        get_mock.side_effect = requests.exceptions.RequestException(response=response)
+        result = rest_input.is_available(DEFAULT_SETTINGS)
+
+        assert result[0] == True
+        assert result[1][0] == f"status={response.status_code}"
+
+    @mock.patch("requests.Session.get")
+    def test_request_is_called_with_ssl_disabled(self, get_mock):
+        settings = DEFAULT_SETTINGS.copy()
+        settings["verify_ssl"] = False
+        result = rest_input.is_available(settings)
+        assert get_mock.call_args[1].get("verify") == settings["verify_ssl"]
