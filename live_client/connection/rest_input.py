@@ -91,27 +91,30 @@ def async_event_sender(live_settings):
 
 
 def is_available(live_settings):
+    try:
+        _validate_settings(live_settings)
+    except Exception as e:
+        return False, ["Not configured", str(e)]
+
     session = create_session(live_settings["username"], live_settings["password"])
     url = f"{live_settings['url']}{live_settings['rest_input']}"
+    verify_ssl = live_settings.get("verify_ssl", True)
+    ssl_message = f'TLS certificate validation is {verify_ssl and "enabled" or "disabled"}'
 
-    if ("url" in live_settings) and ("rest_input" in live_settings):
-        verify_ssl = live_settings.get("verify_ssl", True)
-        ssl_message = f'TLS certificate validation is {verify_ssl and "enabled" or "disabled"}'
-
-        try:
-            response = session.get(url, verify=verify_ssl)
-            response.raise_for_status()
-        except ConnectionError as e:
-            is_available = False
-            messages = [str(e), ssl_message]
-        except RequestException as e:
-            is_available = e.response.status_code == 405
-            messages = [is_available and f"status={e.response.status_code}" or str(e), ssl_message]
-        else:
-            is_available = False
-            messages = ["No result", ssl_message]
+    try:
+        response = session.get(url, verify=verify_ssl)
+        response.raise_for_status()
+    except ConnectionError as e:
+        rest_input_available = False
+        messages = [str(e), ssl_message]
+    except RequestException as e:
+        rest_input_available = e.response.status_code == 405
+        messages = [
+            rest_input_available and f"status={e.response.status_code}" or str(e),
+            ssl_message,
+        ]
     else:
-        is_available = False
-        messages = ["Not configured"]
+        rest_input_available = False
+        messages = ["No result", ssl_message]
 
-    return is_available, messages
+    return rest_input_available, messages
