@@ -77,8 +77,20 @@ class TestAsyncSend:
         )
 
 
-# class TestAsyncEventSender:
-#    pass
+class TestAsyncEventSender:
+    def test_process_is_running(self):
+        sender = rest_input.async_event_sender(DEFAULT_SETTINGS)
+        assert sender.process.is_alive()
+        sender.finish()
+
+    def test_process_closes_after_finish_message(self):
+        sender = rest_input.async_event_sender(DEFAULT_SETTINGS)
+        sender.finish()
+        time.sleep(0.1)  # What is a good timeout here?
+        assert not sender.process.is_alive()
+
+    # Verify the event is sent on an event message
+    # [ECS] How we take the message from the sender to check here?
 
 
 class TestIsAvailable:
