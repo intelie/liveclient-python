@@ -109,6 +109,21 @@ class TestIsAvailable:
         assert result[1][0] == f"status={response.status_code}"
 
     @mock.patch("requests.Session.get")
+    def test_returns_false_on_connection_error(self, get_mock):
+        get_mock.side_effect = requests.exceptions.ConnectionError("Connection Error")
+        result = rest_input.is_available(DEFAULT_SETTINGS)
+
+        assert result[0] == False
+        assert result[1][0] == "Connection Error"
+
+    @mock.patch("requests.Session.get")
+    def test_returns_false_on_no_exception(self, get_mock):
+        result = rest_input.is_available(DEFAULT_SETTINGS)
+
+        assert result[0] == False
+        assert result[1][0] == "No result"
+
+    @mock.patch("requests.Session.get")
     def test_request_is_called_with_ssl_disabled(self, get_mock):
         settings = DEFAULT_SETTINGS.copy()
         settings["verify_ssl"] = False
