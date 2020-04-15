@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
+import queue
 from multiprocessing import Process, Queue
 
 from requests.exceptions import RequestException, ConnectionError
@@ -66,28 +67,21 @@ def async_send(queue, live_settings):
         logging.info("Remote logger process started")
         setproctitle("DDA: Remote logger")
 
-        # live_settings["session"] = None
-        # FIXME: We don't need this call here. send_event will handle the session, we just need to invalidate it here
         live_settings.update(
             session=create_session(live_settings["username"], live_settings["password"])
         )
         while True:
             event = queue.get()
             if event is None:
+                # Flush queue and exit loop:
+                while not queue.empty():
+                    queue.get(block=False)
                 break
             send_event(event, live_settings)
 
 
 def async_event_sender(live_settings):
-    events_queue = Queue()
-    # FIXME: [ECS] We need a way to access the process handle below outside this function:
-    # [ECS] Update: Now "async_send" exits the message loop if None is received. We still
-    # need to provide the process handle to the external world, but at least now we have
-    # a bit of control over the running process.
-    process = Process(target=async_send, args=(events_queue, live_settings))
-    process.start()
-
-    return lambda event: events_queue.put(event)
+    return AsyncSender(live_settings)
 
 
 def is_available(live_settings):
@@ -118,3 +112,19 @@ def is_available(live_settings):
         messages = ["No result", ssl_message]
 
     return rest_input_available, messages
+
+
+class AsyncSender:
+    def __init__(self, live_settings):
+        self.events_queue = Queue()
+        self.process = Process(target=async_send, args=(self.events_queue, live_settings))
+        self.process.start()
+
+    def send(self, event):
+        self.events_queue.put(event)
+
+    def __call__(self, event):
+        return self.send(event)
+
+    def finish(self):
+        self.send(None)
