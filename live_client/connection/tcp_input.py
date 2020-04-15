@@ -10,10 +10,7 @@ __all__ = ["send_event"]
 REQUIRED_PARAMETERS = ["ip", "port"]
 
 
-def send_event(event, live_settings=None):
-    if live_settings is None:
-        live_settings = {}
-
+def send_event(event, live_settings):
     ip = live_settings["ip"]
     port = live_settings["port"]
 
