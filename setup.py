@@ -24,7 +24,7 @@ def get_readme():
 
 setup(
     name="live_client",
-    version="0.6.2",
+    version="0.7.0",
     description="Client libraries to connect with the Intelie LIVE platform",
     long_description=get_readme(),
     long_description_content_type="text/markdown",
@@ -45,7 +45,7 @@ setup(
     python_requires=">=3.6",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
         "Development Status :: 4 - Beta",
         "Topic :: Scientific/Engineering",
