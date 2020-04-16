@@ -15,18 +15,14 @@ from predicates import *
 from utils import settings as S
 from utils.micro_tcp import MicroTcpServer
 
-#DEFAULT_SETTINGS = {param: "" for param in tcp_input.REQUIRED_PARAMETERS}
 SERVER_ADDR = ("127.0.0.1", 8889)
-DEFAULT_SETTINGS = {
-    "ip": SERVER_ADDR[0],
-    "port": SERVER_ADDR[1],
-}
+DEFAULT_SETTINGS = {"ip": SERVER_ADDR[0], "port": SERVER_ADDR[1]}
 
 
 class TestSendEvent:
     def test_event_is_sent(self):
         server = MicroTcpServer(SERVER_ADDR)
-        time.sleep(.1)
+        time.sleep(0.1)
 
         message = "!!Testando !!"
         tcp_input.send_event({"message": message}, DEFAULT_SETTINGS)
@@ -41,12 +37,12 @@ class TestSendEvent:
 
     def test_no_event_sent_if_no_message(self):
         server = MicroTcpServer(SERVER_ADDR)
-        time.sleep(.1)
+        time.sleep(0.1)
 
         tcp_input.send_event({}, DEFAULT_SETTINGS)
         try:
             message = server.output_queue.get(True, 1)
-            assert False # If we are here the message has been sent
+            assert False  # If we are here the message has been sent
         except queue.Empty as e:
             server.close()
 

@@ -2,10 +2,10 @@ import multiprocessing as mp
 import socket
 
 
-class MicroTcpServer():
+class MicroTcpServer:
     def __init__(self, server_addr):
         self.output_queue = mp.Queue()
-        self.process = mp.Process(target = self.run, args=[server_addr, self.output_queue])
+        self.process = mp.Process(target=self.run, args=[server_addr, self.output_queue])
         self.process.start()
 
     def run(self, server_addr, output_queue):
