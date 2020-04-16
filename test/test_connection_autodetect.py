@@ -14,12 +14,7 @@ from predicates import *
 from utils import settings as S
 
 TCP_SETTINGS = {"ip": "127.0.0.1", "port": 3210}
-REST_SETTINGS = {
-    "url": "",
-    "username": "",
-    "password": "",
-    "rest_input": "",
-}
+REST_SETTINGS = {"url": "", "username": "", "password": "", "rest_input": ""}
 
 
 class TestSendEvent:
