@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import queue
-from multiprocessing import Process, Queue
+from multiprocessing import get_context as get_mp_context
 
 from eliot import start_action
 from setproctitle import setproctitle
@@ -80,6 +80,8 @@ def watch(url, channels, output_queue):
 
 
 def run(statement, settings, timeout=None, **kwargs):
+    mp = get_mp_context("fork")
+
     with start_action(action_type="query.run", statement=statement):
         live_settings = settings["live"]
 
@@ -90,8 +92,8 @@ def run(statement, settings, timeout=None, **kwargs):
         live_url = live_settings["url"]
         results_url = f"{live_url}/cometd"
 
-        events_queue = Queue()
-        process = Process(target=watch, args=(results_url, channels, events_queue))
+        events_queue = mp.Queue()
+        process = mp.Process(target=watch, args=(results_url, channels, events_queue))
         process.start()
 
     return process, events_queue

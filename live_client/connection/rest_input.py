@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
-from multiprocessing import Process, Queue
+from multiprocessing import get_context as get_mp_context
 
 from requests.exceptions import RequestException, ConnectionError
 from setproctitle import setproctitle
@@ -60,8 +60,9 @@ def async_send(queue, live_settings):
 
 
 def async_event_sender(live_settings):
-    events_queue = Queue()
-    process = Process(target=async_send, args=(events_queue, live_settings))
+    mp = get_mp_context("fork")
+    events_queue = mp.Queue()
+    process = mp.Process(target=async_send, args=(events_queue, live_settings))
     process.start()
 
     return lambda event: events_queue.put(event)
