@@ -15,15 +15,15 @@ from mocks import *
 from predicates import *
 from utils import settings as S
 
-_vcr = vcr.VCR(cassette_library_dir='fixtures/cassettes')
+_vcr = vcr.VCR(cassette_library_dir="fixtures/cassettes")
 
 
 settings = {
     "live": {
-        "username": 'admin',
-        "password": 'admin',
+        "username": "admin",
+        "password": "admin",
         "url": "http://localhost:8080",
-        "rest_input": '/services/plugin-restinput/DDA/',
+        "rest_input": "/services/plugin-restinput/DDA/",
         "user_id": 1,
     },
     "output": {
@@ -45,8 +45,9 @@ def _use_safe_cassete(*args, **kwargs):
     kwargs["filter_headers"] = filter_headers
 
     def before_record_response(original_response):
-        original_response['headers']['Set-Cookie'] = ""
+        original_response["headers"]["Set-Cookie"] = ""
         return original_response
+
     kwargs["before_record_response"] = before_record_response
 
     return _vcr.use_cassette(*args, **kwargs)
@@ -66,11 +67,11 @@ class TestQueryStart:
     def test_raises_if_invalid_url(self):
         query_str = "__message message:__teste__"
 
-        settings["live"]["url"] = "" # --> RequestException (Missing Schema)
+        settings["live"]["url"] = ""  # --> RequestException (Missing Schema)
         with pytest.raises(requests.exceptions.RequestException):
             channels = query.start(query_str, settings)
 
-        settings["live"]["url"] = "http://invalid.inv" # --> RequestException (Connection Error)
+        settings["live"]["url"] = "http://invalid.inv"  # --> RequestException (Connection Error)
         with pytest.raises(requests.exceptions.RequestException):
             channels = query.start(query_str, settings)
 
