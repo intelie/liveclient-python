@@ -89,7 +89,7 @@ class TestAsyncEventSender:
         time.sleep(0.1)  # What is a good timeout here?
         assert not sender.process.is_alive()
 
-    # Verify the event is sent on an event message
+    # [TODO] Verify the event is sent on an event message
     # [ECS] How we take the message from the sender to check here?
 
 
