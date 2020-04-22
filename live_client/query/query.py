@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import queue
+from functools import wraps
 from multiprocessing import Process, Queue
 
 from eliot import start_action
@@ -17,6 +18,10 @@ __all__ = ["on_event", "run", "start", "watch"]
 
 
 def start(statement, settings, timeout=None, **kwargs):
+    """
+    Sends the query statement via HTTP and returns the comet channels for grabbing the results
+    """
+
     live_settings = settings["live"]
     live_url = live_settings["url"]
     verify_ssl = live_settings.get("verify_ssl", True)
@@ -54,9 +59,14 @@ def start(statement, settings, timeout=None, **kwargs):
 
 
 async def read_results(url, channels, output_queue):
+    """
+        Reads the results of the comet websocket containing the query output.
+        Runs in the reader process.
+    """
+
     setproctitle("live-client: cometd client for channels {}".format(channels))
 
-    with ensure_timeout(3.05):
+    with ensure_timeout(3.05):  # TODO: Put this timeout in a variable
         with start_action(action_type="query.read_results", url=url, channels=channels):
             # connect to the server
             async with Client(url) as client:
@@ -82,13 +92,13 @@ def watch(url, channels, output_queue):
 
 
 def run(statement, settings, timeout=None, **kwargs):
+    """ Reads the query results in a separate process (the reader process) """
+
     with start_action(action_type="query.run", statement=statement):
-        live_settings = settings["live"]
-
         channels = start(statement, settings, timeout=timeout, **kwargs)
-
         logging.debug(f"Results channel is {channels}")
 
+        live_settings = settings["live"]
         live_url = live_settings["url"]
         results_url = f"{live_url}/cometd"
 
@@ -99,8 +109,15 @@ def run(statement, settings, timeout=None, **kwargs):
     return process, events_queue
 
 
+# [ECS]: The function of this decorator is:
+#   1 - Start the query process and
+#   2 - Provide a consumer loop for the query results
+# The name 'on_event' is a bit misleading as it suggests it would be or create some kind
+# of callback for the query results which it is not really.
+# Maybe 'run_query' is a better name? Other options: 'query_event_loop', 'event_loop'
 def on_event(statement, settings, realtime=True, timeout=None, **query_args):
     def handler_decorator(f):
+        @wraps(f)
         def wrapper(*args, **kwargs):
             results_process, results_queue = run(
                 statement, settings, realtime=realtime, timeout=timeout, **query_args
