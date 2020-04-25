@@ -2,7 +2,7 @@
 import asyncio
 import queue
 from functools import wraps
-from multiprocessing import Process, Queue
+from multiprocessing import get_context as get_mp_context
 
 from eliot import start_action
 from setproctitle import setproctitle
@@ -112,6 +112,8 @@ def run(statement, settings, timeout=None, **kwargs):
         The results retrieving process and its output queue.
     """
 
+    mp = get_mp_context("fork")
+
     with start_action(action_type="query.run", statement=statement):
         channels = start(statement, settings, timeout=timeout, **kwargs)
         logging.debug(f"Results channel is {channels}")
@@ -120,8 +122,8 @@ def run(statement, settings, timeout=None, **kwargs):
         live_url = live_settings["url"]
         results_url = f"{live_url}/cometd"
 
-        events_queue = Queue()
-        process = Process(target=watch, args=(results_url, channels, events_queue))
+        events_queue = mp.Queue()
+        process = mp.Process(target=watch, args=(results_url, channels, events_queue))
         process.start()
 
     return process, events_queue
