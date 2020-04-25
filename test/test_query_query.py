@@ -1,5 +1,6 @@
 from testbase import *
 
+import copy
 import re
 from unittest import mock
 
@@ -13,12 +14,11 @@ import vcr
 from live_client.query import query
 from mocks import *
 from predicates import *
-from utils import settings as S
 
 _vcr = vcr.VCR(cassette_library_dir="fixtures/cassettes")
 
 
-settings = {
+DEFAULT_SETTINGS = {
     "live": {
         "username": "admin",
         "password": "admin",
@@ -31,6 +31,10 @@ settings = {
         "room": {"id": "7g61s2lch7h081e05e1cs3m5cq"},
     },
 }
+
+
+def _build_default_settings():
+    return copy.deepcopy(DEFAULT_SETTINGS)
 
 
 def _use_safe_cassete(*args, **kwargs):
@@ -56,6 +60,7 @@ def _use_safe_cassete(*args, **kwargs):
 class TestQueryStart:
     @_use_safe_cassete("test_query_query_start.yml", record_mode="new_episodes")
     def test_returns_channels_on_good_data(self):
+        settings = _build_default_settings()
         query_str = "__message message:__teste__"
         channels = query.start(query_str, settings)
         assert len(channels) > 0
@@ -65,6 +70,7 @@ class TestQueryStart:
 
     @_use_safe_cassete("test_query_query_start.yml", record_mode="new_episodes")
     def test_raises_if_invalid_url(self):
+        settings = _build_default_settings()
         query_str = "__message message:__teste__"
 
         settings["live"]["url"] = ""  # --> RequestException (Missing Schema)
@@ -76,8 +82,45 @@ class TestQueryStart:
             channels = query.start(query_str, settings)
 
     def test_raises_on_invalid_settings(self):
+        settings = _build_default_settings()
         with pytest.raises(KeyError):
             channels = query.start("_", {})
 
         with pytest.raises(KeyError):
             channels = query.start("_", {"live": {}})
+
+
+class TestQueryRun:
+    def test_raises_on_invalid_settings(self):
+        settings = _build_default_settings()
+        with pytest.raises(KeyError):
+            channels = query.run("_", {})
+
+        with pytest.raises(KeyError):
+            channels = query.run("_", {"live": {}})
+
+    @_use_safe_cassete("test_query_query_run.yml", record_mode="new_episodes")
+    def test_returns_process_and_queue_on_valid_data(self):
+        settings = _build_default_settings()
+
+        query_str = "__message message:__teste__"
+        process, queue = query.run(query_str, settings)
+        assert isinstance(process, mp.context.Process)
+        assert process.is_alive()
+        assert isinstance(queue, mp.queues.Queue)
+
+        queue.close()
+        process.terminate()
+        process.join()
+
+    @mock.patch("live_client.query.query.Process")
+    @_use_safe_cassete("test_query_query_run.yml", record_mode="new_episodes")
+    def test_process_created_with_proper_arguments(self, mock_Process):
+        settings = _build_default_settings()
+        query_str = "_"
+        process, queue = query.run(query_str, settings, realtime=True)
+
+        args = mock_Process.call_args[1].get("args")
+        assert args[0].endswith("/cometd")
+        assert all(map(lambda s: s.startswith("/data"), args[1]))
+        assert isinstance(args[2], mp.queues.Queue)

@@ -1,0 +1,40 @@
+interactions:
+- request:
+    body: '[{"provider": "pipes", "preload": false, "span": null, "follow": false,
+      "expression": "__message message:__teste__"}]'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '117'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.22.0
+    method: POST
+    uri: http://localhost:8080/rest/query
+  response:
+    body:
+      string: '[{"channel":"/data/3da562fb77854f288db9a2c375a077db"}]'
+    headers:
+      Cache-Control:
+      - no-cache
+      Content-Type:
+      - application/json;charset=utf-8
+      Date:
+      - Wed, 22 Apr 2020 22:47:23 GMT
+      Expires:
+      - Thu, 01 Jan 1970 00:00:00 GMT
+      Set-Cookie: ''
+      Transfer-Encoding:
+      - chunked
+      X-FRAME-OPTIONS:
+      - DENY
+    status:
+      code: 200
+      message: OK
+version: 1
