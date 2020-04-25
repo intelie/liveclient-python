@@ -1,0 +1,39 @@
+@startuml
+
+hide footbox
+
+participant "Client Code" as client
+participant query
+participant QueryQueue
+participant QueryProcess as "QueryProcess\n//(Reader Process)//"#ffcccc
+'end box
+
+client -> query ++: run
+    query -> query ++ : start
+        query -> Live ++ : .../rest/query (HTTP - REST)
+        query <-- Live -- : channels (json)
+        Live -> Live ++: pipes query
+    query --> query --: channels
+
+    query -> QueryQueue **
+    box "Reader Process"
+    query -> QueryProcess **
+    end box
+    query -> QueryProcess ++: start
+
+client <-- query --: process, queue
+
+group loop: Reading results
+    Live -> QueryProcess ++: event (comet)
+    QueryProcess -> QueryQueue : put
+    client -> QueryQueue ++: get
+    return events
+    deactivate QueryProcess
+    client -> client ++: do_some_stuff
+    deactivate client
+end
+
+deactivate QueryProcess
+deactivate Live
+
+@enduml
