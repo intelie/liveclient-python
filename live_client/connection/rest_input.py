@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
-import queue
-from multiprocessing import Process, Queue
+from multiprocessing import get_context as get_mp_context
 
 from requests.exceptions import RequestException, ConnectionError
 from setproctitle import setproctitle
@@ -116,8 +115,9 @@ def is_available(live_settings):
 
 class AsyncSender:
     def __init__(self, live_settings):
-        self.events_queue = Queue()
-        self.process = Process(target=async_send, args=(self.events_queue, live_settings))
+        mp = get_mp_context("fork")
+        self.events_queue = mp.Queue()
+        self.process = mp.Process(target=async_send, args=(self.events_queue, live_settings))
         self.process.start()
 
     def send(self, event):
