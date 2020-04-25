@@ -105,7 +105,7 @@ class TestQueryRun:
 
         query_str = "__message message:__teste__"
         process, queue = query.run(query_str, settings)
-        assert isinstance(process, mp.context.Process)
+        assert isinstance(process, mp.context.ForkContext.Process)
         assert process.is_alive()
         assert isinstance(queue, mp.queues.Queue)
 
@@ -113,7 +113,7 @@ class TestQueryRun:
         process.terminate()
         process.join()
 
-    @mock.patch("live_client.query.query.Process")
+    @mock.patch("multiprocessing.context.ForkContext.Process")
     @_use_safe_cassete("test_query_query_run.yml", record_mode="new_episodes")
     def test_process_created_with_proper_arguments(self, mock_Process):
         settings = _build_default_settings()
