@@ -91,8 +91,26 @@ def watch(url, channels, output_queue):
     loop.run_until_complete(read_results(url, channels, output_queue))
 
 
+# [FIXME]: "timeout" when read in the context of this function can easily be interpreted
+# as the timeout for the reader process to stop reading and terminate. This is not the case.
+# As documented below timeout relates only to one of the steps even before spawning the
+# worker process. [ECS]: We should either rename the variable (but do we really need the current
+# timeout as it is?), or think about adapting the implementation to something more inline with
+# the expected effects.
 def run(statement, settings, timeout=None, **kwargs):
-    """ Reads the query results in a separate process (the reader process) """
+    """
+        Reads the query results in a separate process (the reader process) and
+    reports the results via a queue. Results are put in the queue as they are
+    made available. Consumers can then get from the queue to obtain the results.
+
+    Arguments:
+        statement (str): The query to be executed
+        settings (dict): Context information regarding Live connection.
+        timeout (number): Seconds for each retry when requesting the comet channels.
+            The total timeout can be up to "timeout * (kwargs['max_retries'] + 1)"
+    Returns:
+        The results retrieving process and its output queue.
+    """
 
     with start_action(action_type="query.run", statement=statement):
         channels = start(statement, settings, timeout=timeout, **kwargs)
