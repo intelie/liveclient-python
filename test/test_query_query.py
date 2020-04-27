@@ -1,6 +1,8 @@
 from testbase import *
 
+import asyncio
 import copy
+import queue
 import re
 from unittest import mock
 
@@ -11,6 +13,7 @@ import requests
 import time
 import vcr
 
+from live_client import events
 from live_client.query import query
 from mocks import *
 from predicates import *
@@ -124,3 +127,84 @@ class TestQueryRun:
         assert args[0].endswith("/cometd")
         assert all(map(lambda s: s.startswith("/data"), args[1]))
         assert isinstance(args[2], mp.queues.Queue)
+
+
+class TestOnEvent:
+    def test_decorated_function_has_correct_name(self):
+        @query.on_event("", {})
+        def fn_test(event):
+            print(event)
+
+        assert fn_test.__name__ == "fn_test"
+
+    @mock.patch("live_client.query.query.run")
+    def test_starts_the_query_process(self, mock_run):
+        output_queue = MPQueue()
+        mock_process = mock.Mock()
+        mock_run.return_value = (mock_process, output_queue)
+
+        # fmt:off
+        event = {
+            "data": {
+                "type": events.constants.EVENT_TYPE_DESTROY
+            }
+        }
+        # fmt:on
+        output_queue.put(event)
+
+        @query.on_event("", {})
+        def fn_test(event):
+            print(event)
+
+        fn_test()
+
+        assert mock_run.called
+
+    @mock.patch("live_client.query.query.run")
+    def test_tries_to_get_results(self, mock_run):
+        # fmt:off
+        event = {
+            "data": {
+                "type": events.constants.EVENT_TYPE_DESTROY
+            }
+        }
+        # fmt:on
+        mock_queue = mock.Mock()
+        mock_queue.get = mock.Mock()
+        mock_queue.get.return_value = event
+        mock_process = mock.Mock()
+        mock_run.return_value = (mock_process, mock_queue)
+
+        @query.on_event("", {})
+        def fn_test(event):
+            pass
+
+        fn_test()
+
+        assert mock_queue.get.called
+
+    @mock.patch("live_client.query.query.run")
+    def test_performs_cleanup(self, mock_run):
+        # fmt:off
+        event = {
+            "data": {
+                "type": events.constants.EVENT_TYPE_DESTROY
+            }
+        }
+        # fmt:on
+
+        mock_queue = mock.Mock()
+        mock_queue.get = mock.Mock()
+        mock_queue.get.return_value = event
+        mock_process = mock.Mock()
+        mock_run.return_value = (mock_process, mock_queue)
+
+        @query.on_event("", {})
+        def fn_test(event):
+            pass
+
+        fn_test()
+
+        assert mock_queue.close.called
+        assert mock_process.terminate.called
+        assert mock_process.join.called

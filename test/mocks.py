@@ -1,4 +1,5 @@
 from unittest import mock
+import queue
 
 
 class ChatMock:
@@ -23,3 +24,8 @@ class ChatMock:
 # While we don't come up with a better name, let's use this.
 def patch_with_factory(target, obj, *args, **kwargs):
     return mock.patch(target, lambda *a, **kws: obj, *args, **kwargs)
+
+
+class MPQueue(queue.Queue):
+    def close(*args, **kwargs):
+        pass
