@@ -15,6 +15,6 @@ class TestGetTimestamp:
 
     def test_last_timestamp_is_higher_than_previous(self):
         ts1 = TS.get_timestamp()
-        time.sleep(.01)
+        time.sleep(0.01)
         ts2 = TS.get_timestamp()
         assert ts2 > ts1
