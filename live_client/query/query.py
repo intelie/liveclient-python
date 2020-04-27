@@ -4,9 +4,9 @@ import queue
 from functools import wraps
 from multiprocessing import get_context as get_mp_context
 
+import aiocometd
 from eliot import start_action
 from setproctitle import setproctitle
-from aiocometd import Client
 
 from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT
 from live_client.connection.rest_input import create_session
@@ -69,14 +69,14 @@ async def read_results(url, channels, output_queue):
     with ensure_timeout(3.05):  # TODO: Put this timeout in a variable
         with start_action(action_type="query.read_results", url=url, channels=channels):
             # connect to the server
-            async with Client(url) as client:
+            async with aiocometd.Client(url) as client:
                 for channel in channels:
                     logging.debug(f"Subscribing to '{channel}'")
                     await client.subscribe(channel)
 
                 # listen for incoming messages
                 async for message in client:
-                    logging.debug(f"New message'{message}'")
+                    logging.debug(f"New message '{message}'")
                     output_queue.put(message)
 
                     # Exit after the query has stopped
@@ -134,7 +134,7 @@ def run(statement, settings, timeout=None, **kwargs):
 #   2 - Provide a consumer loop for the query results
 # The name 'on_event' is a bit misleading as it suggests it would be or create some kind
 # of callback for the query results which it is not really.
-# Maybe 'run_query' is a better name? Other options: 'query_event_loop', 'event_loop'
+# Some options: 'query_event_loop', 'event_loop', 'monitor', 'register'
 def on_event(statement, settings, realtime=True, timeout=None, **query_args):
     def handler_decorator(f):
         @wraps(f)
