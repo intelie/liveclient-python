@@ -12,3 +12,11 @@ def dict_contains(d, other):
 
 def is_empty(obj):
     return not bool(obj)
+
+
+_float_tolerance = 1e-6
+
+
+def float_equals(v1, v2, tolerance=_float_tolerance):
+    assert tolerance > 0
+    return v1 - v2 < tolerance
