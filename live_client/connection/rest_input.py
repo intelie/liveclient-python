@@ -7,7 +7,7 @@ from setproctitle import setproctitle
 from eliot import start_action
 
 from live_client.utils import logging
-from live_client.utils.network import retry_on_failure
+from live_client.utils import network
 
 __all__ = ["send_event"]
 
@@ -50,7 +50,7 @@ def send_event(event, live_settings):
     url = f"{live_settings['url']}{live_settings['rest_input']}"
 
     try:
-        with retry_on_failure(3.05, max_retries=5):
+        with network.ensure_timeout(network.getcontext().default_timeout):
             response = session.post(url, json=event, verify=verify_ssl)
             response.raise_for_status()
     except RequestException as e:

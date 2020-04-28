@@ -3,8 +3,7 @@ from .events import messenger
 from .utils.timestamp import get_timestamp
 
 
-DEFAULT_REQUEST_TIMEOUT = (3.05, 5)
-DEFAULT_MAX_RETRIES = 5
+DEFAULT_REQUEST_TIMEOUT = network.getcontext().default_timeout
 
 
 def merge_extra_settings(func):
@@ -31,12 +30,7 @@ class LiveClient:
 
     def run_query(self, query_str, realtime, span=None):
         return query.run(
-            query_str,
-            self.settings,
-            realtime=realtime,
-            span=span,
-            timeout=DEFAULT_REQUEST_TIMEOUT,
-            max_retries=DEFAULT_MAX_RETRIES,
+            query_str, self.settings, realtime=realtime, span=span, timeout=DEFAULT_REQUEST_TIMEOUT
         )
 
     def send_message(self, message):

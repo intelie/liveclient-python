@@ -5,13 +5,13 @@ from requests.exceptions import RequestException
 from eliot import start_action
 
 from live_client.connection.rest_input import create_session
-from live_client.utils.network import retry_on_failure
+from live_client.utils.network import ensure_timeout
 from live_client.utils import logging
 
 __all__ = ["make_request", "request_with_timeout"]
 
 
-def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True):
+def make_request(url, settings, timeout=None, handle_errors=True):
     live_settings = settings["live"]
     verify_ssl = live_settings.get("verify_ssl", True)
 
@@ -23,7 +23,7 @@ def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True)
     session = live_settings["session"]
 
     with start_action(action_type="make request", url=url):
-        with retry_on_failure(timeout, max_retries=max_retries):
+        with ensure_timeout(timeout):
             try:
                 response = session.get(url, verify=verify_ssl)
                 response.raise_for_status()
@@ -44,4 +44,4 @@ def make_request(url, settings, timeout=None, max_retries=0, handle_errors=True)
     return result
 
 
-request_with_timeout = partial(make_request, timeout=(3.05, 5), max_retries=5)
+request_with_timeout = partial(make_request, timeout=network.getcontext().default_timeout)

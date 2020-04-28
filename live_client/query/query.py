@@ -10,7 +10,7 @@ from setproctitle import setproctitle
 
 from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT
 from live_client.connection.rest_input import create_session
-from live_client.utils.network import retry_on_failure, ensure_timeout
+from live_client.utils.network import ensure_timeout
 from live_client.utils import logging
 
 
@@ -35,7 +35,6 @@ def start(statement, settings, timeout=None, **kwargs):
     realtime = kwargs.get("realtime", False)
     span = kwargs.get("span", None)
     preload = kwargs.get("preload", False)
-    max_retries = kwargs.get("max_retries", 0)
 
     api_url = f"{live_url}/rest/query"
     query_payload = [
@@ -48,7 +47,7 @@ def start(statement, settings, timeout=None, **kwargs):
         }
     ]
 
-    with retry_on_failure(timeout, max_retries=max_retries):
+    with ensure_timeout(timeout):
         logging.debug(f"Query '{statement}' started")
         r = session.post(api_url, json=query_payload, verify=verify_ssl)
         r.raise_for_status()
@@ -66,7 +65,7 @@ async def read_results(url, channels, output_queue):
 
     setproctitle("live-client: cometd client for channels {}".format(channels))
 
-    with ensure_timeout(3.05):  # TODO: Put this timeout in a variable
+    with ensure_timeout(network.getcontext().default_timeout):
         with start_action(action_type="query.read_results", url=url, channels=channels):
             # connect to the server
             async with aiocometd.Client(url) as client:
@@ -106,8 +105,7 @@ def run(statement, settings, timeout=None, **kwargs):
     Arguments:
         statement (str): The query to be executed
         settings (dict): Context information regarding Live connection.
-        timeout (number): Seconds for each retry when requesting the comet channels.
-            The total timeout can be up to "timeout * (kwargs['max_retries'] + 1)"
+        timeout (number): Seconds to wait to retrieve the comet channels.
     Returns:
         The results retrieving process and its output queue.
     """
