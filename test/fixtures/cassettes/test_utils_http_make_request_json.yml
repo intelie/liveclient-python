@@ -1,0 +1,72 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: https://api.lyrics.ovh/v1/Seal/Crazy
+  response:
+    body:
+      string: '{"lyrics":"In a church, by the face, \nHe talks about the people going
+        under. \n\nOnly child know... \nA man decides after seventy years, \n\nThat
+        what he goes there for, is to unlock the door. \n\nWhile those around him
+        criticize and sleep... \n\nAnd through a fractal on a breaking wall, \n\nI
+        see you my friend, and touch your face again. \n\nMiracles will happen as
+        we trip. \n\n\n\nBut we''re never gonna survive, unless... \n\nWe get a little
+        crazy \n\nNo we''re never gonna survive, unless... \n\nWe are a little...
+        \n\n\n\nCray...cray...cray... \n\n\n\nCrazy yellow people walking through
+        my head. \n\nOne of them''s got a gun, to shoot the other one. \n\nAnd yet
+        together they were friends at school \n\nOhh, get it, get it, get it, get
+        it no no! \n\n\n\nIf all were there when we first took the pill, \n\nThen
+        maybe, then maybe, then maybe, then maybe... \n\nMiracles will happen as we
+        speak. \n\n\n\nBut we''re never gonna survive unless... \n\nWe get a little
+        crazy. \n\nNo we''re never gonna survive unless... \n\nWe are a little...
+        \n\nCrazy... \n\nNo no, never survive, unless we get a little... bit... \n\n\n\nOh,
+        a little bit... \n\nOh, a little bit... \n\n\n\nOh... \n\nOh... \n\n\n\nAmanda
+        decides to go along after seventeen years... \n\n\n\nOh darlin... \n\nIn a
+        sky full of people, only some want to fly, \n\nIsn''t that crazy? \n\nIn a
+        world full of people, only some want to fly, \n\nIsn''t that crazy? \n\nCrazy...
+        \n\nIn a heaven of people there''s only some want to fly, \n\nAin''t that
+        crazy? \n\nOh babe... oh darlin... \n\nIn a world full of people there''s
+        only some want to fly, \n\nIsn''t that crazy? \n\nIsn''t that crazy... isn''t
+        that crazy... isn''t that crazy... \n\n\n\nOhh... \n\nBut we''re never gonna
+        survive unless, we get a little crazy.. crazy... \n\nNo we''re never gonna
+        to survive unless we are a little... crazy... \n\nBut we''re never gonna survive
+        unless, we get a little crazy.. crazy... \n\nNo we''re never gonna to survive
+        unless, we are a little.. crazy... \n\nNo no, never survive unless, we get
+        a little bit... \n\n\n\nAnd then you see things \n\nThe size \n\nOf which
+        you''ve never known before \n\n\n\nThey''ll break it \n\n\n\nSomeday... \n\n\n\nOnly
+        child know... \n\n\n\nThem things \n\nThe size \n\nOf which you''ve never
+        known before \n\n\n\nSomeday... \n\nSomeway... \n\nSomeday... \n\nSomeway...
+        \n\nSomeday... \n\nSomeway... \n\nSomeday..."}'
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '2387'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 29 Apr 2020 22:44:42 GMT
+      ETag:
+      - W/"953-9FM5cKqqZkeaQ8KFtLLfKb5YXiw"
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache/2.4.25 (Debian)
+      Set-Cookie: ''
+      X-Powered-By:
+      - Express
+    status:
+      code: 200
+      message: OK
+version: 1

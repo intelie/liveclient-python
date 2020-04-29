@@ -11,14 +11,12 @@ import multiprocessing as mp
 import pytest
 import requests
 import time
-import vcr
 
 from live_client import events
 from live_client.query import query
 from mocks import *
 from predicates import *
-
-_vcr = vcr.VCR(cassette_library_dir="fixtures/cassettes")
+from utils import vcrutils
 
 
 DEFAULT_SETTINGS = {
@@ -40,28 +38,8 @@ def _build_default_settings():
     return copy.deepcopy(DEFAULT_SETTINGS)
 
 
-def _use_safe_cassete(*args, **kwargs):
-    """
-    Builds a cassette without sensitive data so we can store it
-    """
-    required_header_filters = ["authorization"]
-    filter_headers = kwargs.get("filter_headers", [])
-    for header in required_header_filters:
-        if not header in filter_headers:
-            filter_headers.append(header)
-    kwargs["filter_headers"] = filter_headers
-
-    def before_record_response(original_response):
-        original_response["headers"]["Set-Cookie"] = ""
-        return original_response
-
-    kwargs["before_record_response"] = before_record_response
-
-    return _vcr.use_cassette(*args, **kwargs)
-
-
 class TestQueryStart:
-    @_use_safe_cassete("test_query_query_start.yml", record_mode="new_episodes")
+    @vcrutils.use_safe_cassete("test_query_query_start.yml")
     def test_returns_channels_on_good_data(self):
         settings = _build_default_settings()
         query_str = "__message message:__teste__"
@@ -71,7 +49,7 @@ class TestQueryStart:
             m = re.match(r"/data/[0-9a-fA-F]{32}", channel)
             assert m is not None
 
-    @_use_safe_cassete("test_query_query_start.yml", record_mode="new_episodes")
+    @vcrutils.use_safe_cassete("test_query_query_start_02.yml")
     def test_raises_if_invalid_url(self):
         settings = _build_default_settings()
         query_str = "__message message:__teste__"
@@ -102,7 +80,7 @@ class TestQueryRun:
         with pytest.raises(KeyError):
             channels = query.run("_", {"live": {}})
 
-    @_use_safe_cassete("test_query_query_run.yml", record_mode="new_episodes")
+    @vcrutils.use_safe_cassete("test_query_query_run.yml")
     def test_returns_process_and_queue_on_valid_data(self):
         settings = _build_default_settings()
 
@@ -117,7 +95,7 @@ class TestQueryRun:
         process.join()
 
     @mock.patch("multiprocessing.context.ForkContext.Process")
-    @_use_safe_cassete("test_query_query_run.yml", record_mode="new_episodes")
+    @vcrutils.use_safe_cassete("test_query_query_run.yml")
     def test_process_created_with_proper_arguments(self, mock_Process):
         settings = _build_default_settings()
         query_str = "_"
