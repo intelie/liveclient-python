@@ -5,7 +5,7 @@ from requests.exceptions import RequestException
 from eliot import start_action
 
 from live_client.connection.rest_input import create_session
-from live_client.utils.network import ensure_timeout
+from live_client.utils import network
 from live_client.utils import logging
 
 __all__ = ["make_request", "request_with_timeout"]
@@ -23,7 +23,7 @@ def make_request(url, settings, timeout=None, handle_errors=True):
     session = live_settings["session"]
 
     with start_action(action_type="make request", url=url):
-        with ensure_timeout(timeout):
+        with network.ensure_timeout(timeout):
             try:
                 response = session.get(url, verify=verify_ssl)
                 response.raise_for_status()
