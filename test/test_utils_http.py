@@ -20,9 +20,7 @@ DEFAULT_SETTINGS = {
         "url": "http://localhost:8080",
         "rest_input": "/services/plugin-restinput/DDA/",
         "user_id": 1,
-
-        "verify_ssl": False,
-    },
+    }
 }
 
 
