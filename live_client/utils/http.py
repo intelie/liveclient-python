@@ -29,12 +29,13 @@ def make_request(url, settings, timeout=None, handle_errors=True):
                 response.raise_for_status()
                 content_type = response.headers.get("Content-Type")
 
-                if "text/plain" in content_type:
-                    result = response.text
-                else:
+                if "application/json" in content_type:
                     result = response.json()
+                else:
+                    result = response.text
 
             except RequestException as e:
+                print(e)
                 if handle_errors:
                     logging.exception(f"Error during request for {url}, {e}<{type(e)}>")
                     result = None
