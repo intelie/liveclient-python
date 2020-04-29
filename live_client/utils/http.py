@@ -35,7 +35,6 @@ def make_request(url, settings, timeout=None, handle_errors=True):
                     result = response.text
 
             except RequestException as e:
-                print(e)
                 if handle_errors:
                     logging.exception(f"Error during request for {url}, {e}<{type(e)}>")
                     result = None
