@@ -1,0 +1,35 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://localhost:8080/healthcheck
+  response:
+    body:
+      string: WORKING
+    headers:
+      Content-Length:
+      - '7'
+      Content-Type:
+      - text/plain;charset=iso-8859-1
+      Date:
+      - Thu, 30 Apr 2020 21:39:51 GMT
+      Expires:
+      - Thu, 01 Jan 1970 00:00:00 GMT
+      Set-Cookie: ''
+      Vary:
+      - Accept-Encoding
+      X-FRAME-OPTIONS:
+      - DENY
+    status:
+      code: 200
+      message: OK
+version: 1
