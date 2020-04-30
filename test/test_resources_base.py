@@ -19,7 +19,7 @@ DEFAULT_SETTINGS = {
         "url": "http://localhost:8080",
         "rest_input": "/services/plugin-restinput/DDA/",
         "user_id": 1,
-    },
+    }
 }
 
 
@@ -50,6 +50,7 @@ class TestFetchResource:
 class TestIsLiveAvailable:
     @vcrutils.use_safe_cassete("test_resouces_base_is_live_available_success_on_avaliable.yml")
     def test_success_on_avaliable(self):
+        # fmt:off
         settings = {
             "live": {
                 "username": "admin",
@@ -57,11 +58,13 @@ class TestIsLiveAvailable:
                 "url": "http://localhost:8080",
             }
         }
+        # fmt:on
 
         assert base.is_live_available(settings)
 
     @vcrutils.use_safe_cassete("test_resouces_base_is_live_available_fail_on_unavaliable.yml")
     def test_fail_on_unavaliable(self):
+        # fmt:off
         settings = {
             "live": {
                 "username": "admin",
@@ -69,5 +72,6 @@ class TestIsLiveAvailable:
                 "url": "http://localhost:8888",
             }
         }
+        # fmt:on
 
         assert not base.is_live_available(settings)
