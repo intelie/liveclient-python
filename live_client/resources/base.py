@@ -9,18 +9,18 @@ HEALTH_OK = "WORKING"
 def fetch_resource(path, settings, handle_errors=True):
     live_settings = settings["live"]
     url = live_settings["url"]
-    items_url = f"{url}{path}"
-    items_list = []
+    resource_url = f"{url}{path}"
+    resource = None
 
     try:
-        items_list = http.request_with_timeout(items_url, settings, handle_errors=handle_errors)
+        resource = http.request_with_timeout(resource_url, settings, handle_errors=handle_errors)
     except Exception:
-        if handle_errors:
-            logging.exception(f"Error fetching {items_url}")
+        if handle_errors: # !!! We only get here if handle_errors == False so we don't need to test <<<<<
+            logging.exception(f"Error fetching {resource_url}")
         else:
             raise
 
-    return items_list
+    return resource
 
 
 def is_live_available(settings):
