@@ -11,6 +11,7 @@ from mocks import *
 from predicates import *
 from utils import vcrutils
 
+# fmt:off
 DEFAULT_SETTINGS = {
     "live": {
         "username": "admin",
@@ -18,6 +19,7 @@ DEFAULT_SETTINGS = {
         "url": "http://localhost:8080",
     }
 }
+# fmt:off
 
 
 def _build_default_settings():
