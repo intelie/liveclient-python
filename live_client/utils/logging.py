@@ -3,6 +3,7 @@ import sys
 from functools import partial
 import logging as python_logging
 from http.client import HTTPConnection
+import multiprocessing
 from pprint import pprint
 
 from eliot import Message, write_traceback, add_destinations
@@ -105,3 +106,8 @@ def setup_python_logging(logging_settings):
     cometd_log.addHandler(EliotHandler())
     cometd_log.setLevel(log_level)
     cometd_log.propagate = False
+
+    multiprocessing_log = multiprocessing.get_logger()
+    multiprocessing_log.addHandler(EliotHandler())
+    multiprocessing_log.setLevel(log_level)
+    multiprocessing_log.propagate = False
