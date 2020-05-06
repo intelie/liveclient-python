@@ -43,11 +43,13 @@ def check_status(settings):
         return compare_versions(available_version, expected_version, comparison)
 
     def merge_user_permissions(userinfo):
-        permissions = []
-
-        for team in userinfo.get("teams", []):
-            for role in team.get("roles", []):
-                permissions.extend(role.get("permissions", []))
+        if userinfo:
+            permissions = []
+            for team in userinfo.get("teams", []):
+                for role in team.get("roles", []):
+                    permissions.extend(role.get("permissions", []))
+        else:
+            permissions = []
 
         return set(permissions)
 
