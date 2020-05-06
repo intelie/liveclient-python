@@ -2,6 +2,7 @@
 import sys
 import argparse
 
+from live_client.utils.timestamp import get_timestamp
 from live_client.events import annotation
 
 
@@ -19,6 +20,11 @@ def parse_arguments(argv):
     parser.add_argument("--user_id", dest="user_id", required=True, help="Live user id")
     parser.add_argument("--room_id", dest="room_id", help="Target room id")
     parser.add_argument("--dashboard_id", dest="dashboard_id", help="Target dashboard id")
+    parser.add_argument("--author_name", dest="author_name", help="Annotation author name")
+    parser.add_argument("--src", dest="src", help="Source for the annotation")
+    parser.add_argument(
+        "--ts_delta", dest="ts_delta", default=0, help="Delta to apply to the timestamp"
+    )
 
     args = parser.parse_args(argv[1:])
     if not any([args.room_id, args.dashboard_id]):
@@ -28,9 +34,11 @@ def parse_arguments(argv):
 
 
 def build_settings(args):
+    author_name = args.author_name or "🤖  Annotations bot "
+
     settings = {
         "output": {
-            "author": {"id": args.user_id, "name": "🤖  Annotations bot "},
+            "author": {"id": args.user_id, "name": author_name},
             "room": {"id": args.room_id},
             "dashboard": {"id": args.dashboard_id, "name": "the dashboard"},
         },
@@ -58,10 +66,15 @@ if __name__ == "__main__":
     """
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
+    __src = getattr(args, "src") or "live-client"
+    ts_delta = int(args.ts_delta)
 
     print("\vAll messages written here will be sent to Live. Press CTRL+D to exit.\n")
     for line in sys.stdin:
         if not line.strip():
             continue
 
-        annotation.create({"message": line}, settings=settings)
+        ts = get_timestamp() + ts_delta
+        annotation.create(
+            {"message": line, "__src": __src, "timestamp": ts, "createdAt": ts}, settings=settings
+        )

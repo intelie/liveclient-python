@@ -3,6 +3,7 @@ import sys
 import argparse
 
 from live_client.events import messenger
+from live_client.utils.timestamp import get_timestamp
 
 
 def parse_arguments(argv):
@@ -18,14 +19,20 @@ def parse_arguments(argv):
     )
     parser.add_argument("--user_id", dest="user_id", required=True, help="Live user id")
     parser.add_argument("--room_id", dest="room_id", required=True, help="Target room id")
+    parser.add_argument("--author_name", dest="author_name", help="Annotation author name")
+    parser.add_argument(
+        "--ts_delta", dest="ts_delta", default=0, help="Delta to apply to the timestamp"
+    )
 
     return parser.parse_args(argv[1:])
 
 
 def build_settings(args):
+    author_name = args.author_name or "🤖  Messages bot "
+
     return {
         "output": {
-            "author": {"id": args.user_id, "name": "🤖  Messages bot "},
+            "author": {"id": args.user_id, "name": author_name},
             "room": {"id": args.room_id},
         },
         "live": {
@@ -45,6 +52,7 @@ if __name__ == "__main__":
     """
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
+    ts_delta = int(args.ts_delta)
 
     messenger.join_messenger(settings)
 
@@ -53,4 +61,5 @@ if __name__ == "__main__":
         if not line.strip():
             continue
 
-        messenger.send_message(line, settings=settings)
+        ts = get_timestamp() + ts_delta
+        messenger.send_message(line, settings=settings, timestamp=ts)
