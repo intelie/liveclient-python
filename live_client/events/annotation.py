@@ -23,7 +23,7 @@ def create(annotation_data, settings=None, room=None):
 
 
 def format_and_send(annotation_data, settings, connection_func=None):
-    timestamp = get_timestamp()
+    timestamp = annotation_data.get("timestamp", get_timestamp())
     event = format_event(timestamp, annotation_data, settings)
 
     logging.debug("Creating annotation {}".format(event))

@@ -91,7 +91,7 @@ def send_message(message, **kwargs):
         maybe_send_message_event(message, timestamp, kwargs.get("settings"))
 
     if (message_type is None) or (message_type == MESSAGE_TYPES.CHAT):
-        maybe_send_chat_message(message, **kwargs)
+        maybe_send_chat_message(message, timestamp, **kwargs)
 
 
 def maybe_send_message_event(message, timestamp, settings):
@@ -110,7 +110,7 @@ def maybe_send_message_event(message, timestamp, settings):
     return False
 
 
-def maybe_send_chat_message(message, settings, **kwargs):
+def maybe_send_chat_message(message, timestamp, settings, **kwargs):
     output_settings = settings["output"]
     author = output_settings.get("author")
     room = kwargs.get("room", output_settings.get("room"))
@@ -118,21 +118,18 @@ def maybe_send_chat_message(message, settings, **kwargs):
     shall_send_message = (room is not None) and (author is not None)
 
     if not shall_send_message:
-        logging.warn(
-            f"Cannot send message, room ({room}) and/or author ({author}) missing. Message is '{message}'"
-        )
+        logging.warn(f"Cannot send message, room ({room}) and/or author ({author}) missing")
         return False
 
-    # [ECS][FIXME]: Author should not be altered here. It'd be better to receive it configured from the client <<<<<
     author["name"] = kwargs.get("author_name") or author.get("name")
     connection_func = build_sender_function(settings["live"])
     logging.debug("Sending message '{}' from {} to {}".format(message, author, room))
-    format_and_send(message, room, author, connection_func=connection_func)
+    format_and_send(message, room, author, timestamp=timestamp, connection_func=connection_func)
     return True
 
 
-def format_and_send(message, room, author, connection_func):
-    event = format_message_event(message, room, author, timestamp=get_timestamp())
+def format_and_send(message, room, author, timestamp, connection_func):
+    event = format_message_event(message, room, author, timestamp=timestamp)
     logging.debug("Sending message {}".format(event))
     connection_func(event)
 
