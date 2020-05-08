@@ -7,7 +7,7 @@ from eliot import start_action
 from setproctitle import setproctitle
 from aiocometd import Client
 
-from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT
+from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT, EVENT_TYPE_SPAN
 from live_client.connection.rest_input import build_session
 from live_client.utils.network import retry_on_failure, ensure_timeout
 from live_client.utils import logging
@@ -115,12 +115,15 @@ def on_event(statement, settings, realtime=True, timeout=None, **query_args):
                     break
 
                 event_type = event.get("data", {}).get("type")
-                if event_type == EVENT_TYPE_DESTROY:
+                if event_type == EVENT_TYPE_EVENT:
+                    last_result = f(event, *args, **kwargs)
+                elif event_type == EVENT_TYPE_DESTROY:
                     break
-                elif event_type != EVENT_TYPE_EVENT:
-                    continue
+                else:
+                    if event_type != EVENT_TYPE_SPAN:
+                        logging.info(f"Got event with type={event_type}")
 
-                last_result = f(event, *args, **kwargs)
+                    continue
 
             # Release resources after the query ends
             results_queue.close()
