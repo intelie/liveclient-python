@@ -110,20 +110,22 @@ def on_event(statement, settings, realtime=True, timeout=None, **query_args):
             while True:
                 try:
                     event = results_queue.get(timeout=timeout)
+                    event_type = event.get("data", {}).get("type")
+                    if event_type == EVENT_TYPE_EVENT:
+                        last_result = f(event, *args, **kwargs)
+                    elif event_type == EVENT_TYPE_DESTROY:
+                        break
+                    else:
+                        if event_type != EVENT_TYPE_SPAN:
+                            logging.info(f"Got event with type={event_type}")
+
+                        continue
                 except queue.Empty:
                     logging.exception(f"No results after {timeout} seconds")
                     break
-
-                event_type = event.get("data", {}).get("type")
-                if event_type == EVENT_TYPE_EVENT:
-                    last_result = f(event, *args, **kwargs)
-                elif event_type == EVENT_TYPE_DESTROY:
+                except EOFError as e:
+                    logging.exception(f"Connection lost: {e}")
                     break
-                else:
-                    if event_type != EVENT_TYPE_SPAN:
-                        logging.info(f"Got event with type={event_type}")
-
-                    continue
 
             # Release resources after the query ends
             results_queue.close()
