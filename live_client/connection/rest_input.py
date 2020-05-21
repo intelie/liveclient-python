@@ -56,7 +56,11 @@ def async_send(queue, live_settings):
         live_settings.update(session=build_session(live_settings))
         while True:
             event = queue.get()
-            send_event(event, live_settings)
+            try:
+                send_event(event, live_settings)
+            except RequestException:
+                logging.warn("Ignoring previous exception")
+                pass
 
 
 def async_event_sender(live_settings):
