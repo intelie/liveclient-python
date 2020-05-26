@@ -79,10 +79,6 @@ def create_room_update_data(room_id, sender, author, action):
     return data
 
 
-# [ECS][FIXME]: This function may choose none, only one or both functions.
-#   Even when one of them or both are choosen neither may be called depending on internal rules.
-#   It is way too complex and should be eliminated
-#   Clients should explicitly call the version they want.
 def send_message(message, **kwargs):
     timestamp = kwargs.pop("timestamp", get_timestamp())
     message_type = kwargs.pop("message_type", None)
