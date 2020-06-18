@@ -25,18 +25,16 @@ def start(statement, settings, timeout=None, **kwargs):
         settings.update(session=build_session(live_settings))
     session = settings["session"]
 
-    realtime = kwargs.get("realtime", False)
-    span = kwargs.get("span", None)
-    preload = kwargs.get("preload", False)
     max_retries = kwargs.get("max_retries", 0)
 
     api_url = f"{live_url}/rest/query"
     query_payload = [
         {
-            "provider": "pipes",
-            "preload": preload,
-            "span": span,
-            "follow": realtime,
+            "provider": kwargs.get("provider", "pipes"),
+            "reducer": kwargs.get("reducer", None),
+            "preload": kwargs.get("preload", True),
+            "span": kwargs.get("span", None),
+            "follow": kwargs.get("realtime", False),
             "expression": statement,
         }
     ]

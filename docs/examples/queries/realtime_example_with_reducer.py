@@ -27,17 +27,20 @@ if __name__ == "__main__":
     args = parse_arguments(sys.argv)
     settings = build_settings(args)
 
-    example_query = "__queries action:start => id, expression, description"
-    span = "last minute"
+    example_query = "__queries action:start => id:max() every minute"
+    span = "last hour"
 
-    @on_event(example_query, settings, timeout=120, span=span)
+    @on_event(example_query, settings, timeout=120, span=span, realtime=False, reducer="@latest")
     def handle_events(event):
+        """
+        The query should return at least 60 values for the maximum id,
+        but the reducer ensures only the latest historical value is returned.
+        """
         event_data = event.get("data", {})
         content = event_data.get("content", {})
-        template = "New query: '{}'"
-        print(f"{len(content)} queries")
+        template = "Max query id: {}"
         for item in content:
-            message = template.format(item["expression"])
+            message = template.format(item.get("max_id"))
             print(message)
 
         return
