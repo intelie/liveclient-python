@@ -50,8 +50,9 @@ def start(statement, settings, timeout=None, **kwargs):
     return channels
 
 
-async def read_results(url, channels, output_queue, live_settings):
+async def read_results(url, channels, output_queue, settings):
     setproctitle("live-client: cometd client for channels {}".format(channels))
+    live_settings = settings["live"]
     verify_ssl = live_settings.get("verify_ssl", None)
 
     with ensure_timeout(3.05):
