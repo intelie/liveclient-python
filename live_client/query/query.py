@@ -10,6 +10,7 @@ from aiocometd import Client
 from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT, EVENT_TYPE_SPAN
 from live_client.connection.rest_input import build_session
 from live_client.utils.network import retry_on_failure, ensure_timeout
+from live_client.utils.processes import get_start_method
 from live_client.utils import logging
 
 
@@ -78,7 +79,7 @@ def watch(url, channels, output_queue):
 
 
 def run(statement, settings, timeout=None, **kwargs):
-    mp = get_mp_context("fork")
+    mp = get_mp_context(get_start_method())
 
     with start_action(action_type="query.run", statement=statement):
         live_settings = settings["live"]

@@ -8,6 +8,7 @@ from eliot import start_action
 
 from live_client.utils import logging
 from live_client.utils.network import retry_on_failure
+from live_client.utils.processes import get_start_method
 
 __all__ = ["send_event"]
 
@@ -64,7 +65,7 @@ def async_send(queue, live_settings):
 
 
 def async_event_sender(live_settings):
-    mp = get_mp_context("fork")
+    mp = get_mp_context(get_start_method())
     events_queue = mp.Queue()
     process = mp.Process(target=async_send, args=(events_queue, live_settings))
     process.start()
