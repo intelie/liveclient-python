@@ -50,13 +50,14 @@ def start(statement, settings, timeout=None, **kwargs):
     return channels
 
 
-async def read_results(url, channels, output_queue):
+async def read_results(url, channels, output_queue, live_settings):
     setproctitle("live-client: cometd client for channels {}".format(channels))
+    verify_ssl = live_settings.get("verify_ssl", None)
 
     with ensure_timeout(3.05):
         with start_action(action_type="query.read_results", url=url, channels=channels):
             # connect to the server
-            async with Client(url) as client:
+            async with Client(url, ssl=verify_ssl) as client:
                 for channel in channels:
                     logging.debug(f"Subscribing to '{channel}'")
                     await client.subscribe(channel)
@@ -73,9 +74,9 @@ async def read_results(url, channels, output_queue):
                         return
 
 
-def watch(url, channels, output_queue):
+def watch(url, channels, output_queue, settings):
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(read_results(url, channels, output_queue))
+    loop.run_until_complete(read_results(url, channels, output_queue, settings))
 
 
 def run(statement, settings, timeout=None, **kwargs):
@@ -92,7 +93,7 @@ def run(statement, settings, timeout=None, **kwargs):
         results_url = f"{live_url}/cometd"
 
         events_queue = mp.Queue()
-        process = mp.Process(target=watch, args=(results_url, channels, events_queue))
+        process = mp.Process(target=watch, args=(results_url, channels, events_queue, settings))
         process.start()
 
     return process, events_queue
