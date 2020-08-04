@@ -5,7 +5,7 @@ from multiprocessing import get_context as get_mp_context
 
 from eliot import start_action
 from setproctitle import setproctitle
-from aiocometd import Client
+from aiocometd import Client, ConnectionType
 
 from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT, EVENT_TYPE_SPAN
 from live_client.connection.rest_input import build_session
@@ -54,11 +54,14 @@ async def read_results(url, channels, output_queue, settings):
     setproctitle("live-client: cometd client for channels {}".format(channels))
     live_settings = settings["live"]
     verify_ssl = live_settings.get("verify_ssl", None)
+    connection_types = settings.get(
+        "connection_type", [ConnectionType.LONG_POLLING, ConnectionType.WEBSOCKET]
+    )
 
     with ensure_timeout(3.05):
         with start_action(action_type="query.read_results", url=url, channels=channels):
             # connect to the server
-            async with Client(url, ssl=verify_ssl) as client:
+            async with Client(url, ssl=verify_ssl, connection_types=connection_types) as client:
                 for channel in channels:
                     logging.debug(f"Subscribing to '{channel}'")
                     await client.subscribe(channel)
