@@ -34,7 +34,7 @@ setup(
     author="Vitor Mazzi",
     author_email="vitor.mazzi@intelie.com.br",
     install_requires=[
-        "aiocometd>=0.4.5",
+        "aiocometd-noloop==0.4.9",
         "eliot>1",
         "eliot-tree",
         "pytz>=2019.2",

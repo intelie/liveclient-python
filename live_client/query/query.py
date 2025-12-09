@@ -5,7 +5,7 @@ from multiprocessing import get_context as get_mp_context
 
 from eliot import start_action
 from setproctitle import setproctitle
-from aiocometd import Client
+from aiocometd_noloop import Client
 
 from live_client.events.constants import EVENT_TYPE_DESTROY, EVENT_TYPE_EVENT, EVENT_TYPE_SPAN
 from live_client.connection.rest_input import build_session
@@ -108,30 +108,42 @@ def on_event(statement, settings, realtime=True, timeout=None, **query_args):
             )
             last_result = None
 
-            while True:
-                try:
-                    event = results_queue.get(timeout=timeout)
-                    event_type = event.get("data", {}).get("type")
-                    if event_type == EVENT_TYPE_EVENT:
-                        last_result = f(event, *args, **kwargs)
-                    elif event_type == EVENT_TYPE_DESTROY:
+            try:
+                while True:
+                    try:
+                        event = results_queue.get(timeout=timeout)
+                        event_type = event.get("data", {}).get("type")
+                        if event_type == EVENT_TYPE_EVENT:
+                            last_result = f(event, *args, **kwargs)
+                            # Check if handler returned exit signal
+                            if last_result == "exit":
+                                logging.info("Handler requested exit")
+                                break
+                        elif event_type == EVENT_TYPE_DESTROY:
+                            break
+                        else:
+                            if event_type != EVENT_TYPE_SPAN:
+                                logging.info(f"Got event with type={event_type}")
+
+                            continue
+                    except queue.Empty:
+                        logging.exception(f"No results after {timeout} seconds")
                         break
-                    else:
-                        if event_type != EVENT_TYPE_SPAN:
-                            logging.info(f"Got event with type={event_type}")
-
-                        continue
-                except queue.Empty:
-                    logging.exception(f"No results after {timeout} seconds")
-                    break
-                except EOFError as e:
-                    logging.exception(f"Connection lost: {e}")
-                    break
-
-            # Release resources after the query ends
-            results_queue.close()
-            results_process.terminate()
-            results_process.join()
+                    except EOFError as e:
+                        logging.exception(f"Connection lost: {e}")
+                        break
+            except KeyboardInterrupt:
+                logging.info("Interrupted by user (Ctrl+C)")
+            finally:
+                # Release resources after the query ends
+                logging.info("Cleaning up resources...")
+                results_queue.close()
+                results_process.terminate()
+                results_process.join(timeout=5)
+                if results_process.is_alive():
+                    logging.warn("Process didn't terminate, killing it")
+                    results_process.kill()
+                    results_process.join()
 
             return last_result
 
