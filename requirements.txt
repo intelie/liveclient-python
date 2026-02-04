@@ -1,5 +1,4 @@
-
-aiocometd==0.4.5
+aiocometd-noloop==0.4.9
 eliot==1.12.0
 eliot-tree==19.0.1
 pytz==2019.2
